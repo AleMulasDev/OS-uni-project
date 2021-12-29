@@ -46,6 +46,7 @@ int main(){
   curs_set(0);
   keypad(stdscr, TRUE);
   getmaxyx(stdscr, borders.maxy, borders.maxx);
+  box(stdscr, ACS_VLINE, ACS_HLINE);
 
   /* Inizializzo il vettore del proiettile in base al rapporto di aspetto del terminale */
   /* Necessario per permettere di colpire anche i nemici in fondo a destra              */
@@ -57,7 +58,9 @@ int main(){
     RIGHT_UP.y = (borders.maxy/borders.maxx)+2;
     RIGHT_DOWN.y = RIGHT_UP.y;
   }
-  
+  // Compenso per la presenza del box
+  borders.maxx--;
+  borders.maxy--;
 
   /* Inizializzo i colori          */
   start_color();
@@ -77,10 +80,10 @@ int main(){
     close(hit_pipe[0]);              /* Chiusura della lettura   */
     game(position_pipe[0], hit_pipe[1], borders);
     waitpid(PIDSpacecraft, NULL, 0); /* Attesa del processo Spacecraft */
+    while(wait(NULL) > 0); // Attendo la terminazione dei processi figli
     endwin();
   }
   
-  while(wait(NULL) > 0); // Attendo la terminazione dei processi figli
 }
 
 // ------------------------------------------------------------
@@ -98,19 +101,19 @@ void game(int pipeIN, int pipeOUT, borders borders){
       case SPACECRAFT:
         if(update.x == -1) return; /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
         
-        attron(COLOR_PAIR(DELETE_COLOR));
-        // mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%6s", " ");
         /* Cancello la precedente posizione della nave     */
+        attron(COLOR_PAIR(DELETE_COLOR));
         for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
           mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%6s", "");
         }
-        attron(COLOR_PAIR(SPACECRAFT_COLOR));
+
         /* Stampo nella nuova posizione della nave         */
+        attron(COLOR_PAIR(SPACECRAFT_COLOR));
         for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
           mvprintw(update.y+i, update.x, "%s", spriteSpacecraft[i]);
-        }
-        // mvprintw(update.y, update.x, "%s", spriteSpacecraft);                     
+        }             
       break;
+
       case BULLET:
         attron(COLOR_PAIR(DELETE_COLOR));
         mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%5s", " "); /* Cancello la precedente posizione del proiettile */

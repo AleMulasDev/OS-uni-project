@@ -18,7 +18,8 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
     coords.x = mov_x; 
     coords.y = mov_y;
     /* Controllo se è fuori dallo schermo */
-    if(coords.x < 0 || coords.x >= borders.maxx || coords.y < 0 || coords.y >= borders.maxy){
+    if(coords.x < 1 || coords.x >= borders.maxx || coords.y < 1 || coords.y >= borders.maxy){
+      coords.x = -1;
       stop = true;
     }
     /* Scrivo coordinate nel pipe */

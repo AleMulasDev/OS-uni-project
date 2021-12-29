@@ -9,13 +9,13 @@ float fireRate = 0.3; // 3 colpo ogni 10 frame, 30 frame al secondo = 9 colpi al
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
   bool quit = false;
   int pid;
-  timeout(DELAY_MS);
+  timeout(0);
   float elapsedTime = 0;
 
   /* Inizializzazione coordinate */
   coordinate coords;
   coords.emitter=SPACECRAFT;
-  coords.x = 0;
+  coords.x = 1;
   coords.y = borders.maxy/2;
   coords.PID = getpid();
   coords.prev_coordinate.x = coords.x;
@@ -32,7 +32,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
         }
         break;
       case KEY_DOWN:
-        if(coords.y<borders.maxy-1){  // Se non sono già in fondo
+        if(coords.y<borders.maxy-1-SPACECRAFT_SPRITE_HEIGHT){  // Se non sono già in fondo
           coords.y++;
         }
         break;
@@ -70,6 +70,6 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
 
     write(pipeOUT, &coords, sizeof(coordinate));
     coords.prev_coordinate.y = coords.y;
-    napms(DELAY_MS);
+    if(c > 0) napms(DELAY_MS);
   }
 }
