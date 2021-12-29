@@ -1,1 +1,1 @@
-# os-uni-project
+# University project for Operating Systems
