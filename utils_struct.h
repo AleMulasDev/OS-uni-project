@@ -12,6 +12,7 @@
 // Costanti comuni a più file
 
 #define DELAY_MS 33 // tempo di attesa in millisecondi
+#define DEFAULT_SPEED 0.06 // 6 frames per fare un movimento pari a quanto specificato nel vettore direzione
 
 // -------------------------------------------------------------
 // Enumerazione per riconoscere l'emettitore delle coordinate
@@ -47,6 +48,7 @@ typedef struct {
 typedef struct {
   int x;
   int y;
+  float speed;
 } vettore;
 
 extern vettore RIGHT_UP;

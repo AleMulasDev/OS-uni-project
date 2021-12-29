@@ -15,7 +15,7 @@
 // ------------------------------------------------------------
 // DEFINIZIONE GLOBALI
 
-char projectile = '*';
+char projectile = '#';
 
 // ------------------------------------------------------------
 // DEFINIZIONE PROTOTIPI
@@ -48,12 +48,13 @@ int main(){
   getmaxyx(stdscr, borders.maxy, borders.maxx);
 
   /* Inizializzo il vettore del proiettile in base al rapporto di aspetto del terminale */
-  /* Necessario per permettere di colpire anche i nemici in fondo a destra */
+  /* Necessario per permettere di colpire anche i nemici in fondo a destra              */
+  /* Aggiungo 2 per compensare per eventuali troncature di interi                       */
   if(borders.maxx > borders.maxy){
-    RIGHT_UP.x = borders.maxx/borders.maxy;
+    RIGHT_UP.x = (borders.maxx/borders.maxy)+2;
     RIGHT_DOWN.x = RIGHT_UP.x;
   }else{
-    RIGHT_UP.y = borders.maxy/borders.maxx;
+    RIGHT_UP.y = (borders.maxy/borders.maxx)+2;
     RIGHT_DOWN.y = RIGHT_UP.y;
   }
   
@@ -62,7 +63,7 @@ int main(){
   start_color();
   init_pair(DELETE_COLOR, COLOR_BLACK, COLOR_BLACK);
   init_pair(SPACECRAFT_COLOR, COLOR_GREEN, COLOR_BLACK);
-  init_pair(BULLET_COLOR, COLOR_RED, COLOR_BLACK);
+  init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
 
 
   /* Creazione processo Spacecraft */
@@ -78,6 +79,8 @@ int main(){
     waitpid(PIDSpacecraft, NULL, 0); /* Attesa del processo Spacecraft */
     endwin();
   }
+  
+  while(wait(NULL) > 0); // Attendo la terminazione dei processi figli
 }
 
 // ------------------------------------------------------------
@@ -85,6 +88,7 @@ int main(){
 
 void game(int pipeIN, int pipeOUT, borders borders){
   int life = 3;
+  int i=0;
   coordinate update;
 
   while(life > 0){
@@ -93,11 +97,19 @@ void game(int pipeIN, int pipeOUT, borders borders){
     switch(update.emitter){
       case SPACECRAFT:
         if(update.x == -1) return; /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
-
+        
         attron(COLOR_PAIR(DELETE_COLOR));
-        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%5s", " "); /* Cancello la precedente posizione della nave     */
+        // mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%6s", " ");
+        /* Cancello la precedente posizione della nave     */
+        for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
+          mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%6s", "");
+        }
         attron(COLOR_PAIR(SPACECRAFT_COLOR));
-        mvprintw(update.y, update.x, "%s", spriteSpacecraft);                     /* Stampo nella nuova posizione della nave         */
+        /* Stampo nella nuova posizione della nave         */
+        for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
+          mvprintw(update.y+i, update.x, "%s", spriteSpacecraft[i]);
+        }
+        // mvprintw(update.y, update.x, "%s", spriteSpacecraft);                     
       break;
       case BULLET:
         attron(COLOR_PAIR(DELETE_COLOR));
@@ -109,7 +121,3 @@ void game(int pipeIN, int pipeOUT, borders borders){
     refresh();
   }
 }
-
-
-// ------------------------------------------------------------
-// FUNZIONE DI UTILITÀ

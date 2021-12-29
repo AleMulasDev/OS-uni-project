@@ -7,10 +7,10 @@
 // ------------------------------------------------------------
 // DEFINIZIONE COSTANTI
 
-#define SPACECRAFT_SPRITE_SIZE 6
-extern int spriteSpacecraftHeight;
-extern int spriteSpacecraftWidth;
-extern char spriteSpacecraft[SPACECRAFT_SPRITE_SIZE];
+extern float fireRate;
+extern const int SPACECRAFT_SPRITE_WIDTH;
+extern const int SPACECRAFT_SPRITE_HEIGHT;
+extern char* spriteSpacecraft[];
 
 // ------------------------------------------------------------
 // DEFINIZIONE PROTOTIPI
