@@ -27,12 +27,12 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
     int c = getch();
     switch(c){
       case KEY_UP:
-        if(coords.y>0){       // Se non sono già in cima
+        if(coords.y>1){       // Se non sono già in cima
           coords.y--;
         }
         break;
       case KEY_DOWN:
-        if(coords.y<borders.maxy-1-SPACECRAFT_SPRITE_HEIGHT){  // Se non sono già in fondo
+        if(coords.y<borders.maxy-SPACECRAFT_SPRITE_HEIGHT){  // Se non sono già in fondo
           coords.y++;
         }
         break;
