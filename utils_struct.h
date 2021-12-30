@@ -7,6 +7,10 @@
 #include <stdbool.h>
 #include <unistd.h>
 #include <curses.h>
+#include <malloc.h>
+#include <stdlib.h>
+#include <sys/wait.h>
+#include <fcntl.h>
 
 /* ------------------------------------------------------------ */
 /* Costanti comuni a più file                                   */
@@ -53,5 +57,11 @@ typedef struct {
 
 extern vettore RIGHT_UP;
 extern vettore RIGHT_DOWN;
+
+typedef struct {
+  int pipeIN;
+  int pipeOUT;
+  int PID_child;
+} enemyPipes;
 
 #endif
