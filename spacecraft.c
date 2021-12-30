@@ -4,7 +4,7 @@
 const int SPACECRAFT_SPRITE_WIDTH = 6;
 const int SPACECRAFT_SPRITE_HEIGHT = 4;
 char* spriteSpacecraft[] = {" /-   ","<[][]>","<[][]>"," \\-   "};
-float fireRate = 0.3; /* 3 colpo ogni 10 frame, 30 frame al secondo = 9 colpi al secondo */
+float fireRate = 0.3;
 
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
   bool quit = false;

@@ -16,7 +16,7 @@
 /* Costanti comuni a più file                                   */
 
 #define DELAY_MS 33        /* tempo di attesa in millisecondi                                                */
-#define DEFAULT_SPEED 0.06 /* 6 frames per fare un movimento pari a quanto specificato nel vettore direzione */
+#define DEFAULT_SPEED 0.06 /* velocità di default del vettore */
 
 /* ------------------------------------------------------------ */
 /* Enumerazione per riconoscere l'emettitore delle coordinate   */
