@@ -59,8 +59,8 @@ int main(){
     RIGHT_DOWN.y = RIGHT_UP.y;
   }
   // Compenso per la presenza del box
-  borders.maxx--;
-  borders.maxy--;
+  borders.maxx-=2;
+  borders.maxy-=2;
 
   /* Inizializzo i colori          */
   start_color();
@@ -116,7 +116,7 @@ void game(int pipeIN, int pipeOUT, borders borders){
 
       case BULLET:
         attron(COLOR_PAIR(DELETE_COLOR));
-        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%5s", " "); /* Cancello la precedente posizione del proiettile */
+        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", " ");  /* Cancello la precedente posizione del proiettile */
         attron(COLOR_PAIR(BULLET_COLOR));
         mvprintw(update.y, update.x, "%c", projectile);                           /* Stampo nella nuova posizione del proiettile     */
     }

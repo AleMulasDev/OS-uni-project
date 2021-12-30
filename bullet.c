@@ -19,7 +19,7 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
     coords.y = mov_y;
     /* Controllo se è fuori dallo schermo */
     if(coords.x < 1 || coords.x >= borders.maxx || coords.y < 1 || coords.y >= borders.maxy){
-      coords.x = -1;
+      coords.x = -2;
       stop = true;
     }
     /* Scrivo coordinate nel pipe */
