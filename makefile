@@ -1,5 +1,5 @@
 game: main.c spacecraft.o
-	gcc -o game main.c spacecraft.o bullet.o utils_struct.o -lncurses
+	gcc -o game main.c spacecraft.o bullet.o utils_struct.o -lncurses -std=c90
 
 spacecraft.o: spacecraft.c spacecraft.h utils_struct.o bullet.o
 	gcc -c -o spacecraft.o spacecraft.c
