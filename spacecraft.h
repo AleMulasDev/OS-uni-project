@@ -4,16 +4,16 @@
 #include "utils_struct.h"
 #include "bullet.h"
 
-// ------------------------------------------------------------
-// DEFINIZIONE COSTANTI
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE COSTANTI                                         */
 
 extern float fireRate;
 extern const int SPACECRAFT_SPRITE_WIDTH;
 extern const int SPACECRAFT_SPRITE_HEIGHT;
 extern char* spriteSpacecraft[];
 
-// ------------------------------------------------------------
-// DEFINIZIONE PROTOTIPI
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE PROTOTIPI                                        */
 
 void spacecraft(int pipeIN, int pipeOUT, borders borders);
 

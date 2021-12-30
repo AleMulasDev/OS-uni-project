@@ -3,8 +3,8 @@
 
 #include "utils_struct.h"
 
-// ------------------------------------------------------------
-// DEFINIZIONE PROTOTIPI
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE PROTOTIPI                                        */
 
 void bullet(int pipeOUT, borders borders, vettore direzione, coordinate startingPoint);
 

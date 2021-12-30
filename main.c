@@ -4,26 +4,27 @@
 #include <locale.h>
 #include <fcntl.h>
 #include "spacecraft.h"
+#include "enemy.h"
 
-// ------------------------------------------------------------
-// DEFINIZIONE MACRO
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE MACRO                                            */
 
 #define DELETE_COLOR 1
 #define SPACECRAFT_COLOR 2
 #define BULLET_COLOR 3
 
-// ------------------------------------------------------------
-// DEFINIZIONE GLOBALI
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE GLOBALI                                          */
 
 char projectile = '#';
 
-// ------------------------------------------------------------
-// DEFINIZIONE PROTOTIPI
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE PROTOTIPI                                        */
 
 void game(int pipeIN, int pipeOUT, borders borders);
 
-// ------------------------------------------------------------
-// DEFINIZIONE MAIN
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE MAIN                                             */
 
 int main(){
   /* Inizializzazioni varie        */
@@ -58,7 +59,7 @@ int main(){
     RIGHT_UP.y = (borders.maxy/borders.maxx)+2;
     RIGHT_DOWN.y = RIGHT_UP.y;
   }
-  // Compenso per la presenza del box
+  /* Compenso per la presenza del box */
   borders.maxx-=2;
   borders.maxy-=2;
 
@@ -80,14 +81,14 @@ int main(){
     close(hit_pipe[0]);              /* Chiusura della lettura   */
     game(position_pipe[0], hit_pipe[1], borders);
     waitpid(PIDSpacecraft, NULL, 0); /* Attesa del processo Spacecraft */
-    while(wait(NULL) > 0); // Attendo la terminazione dei processi figli
+    while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
     endwin();
   }
   
 }
 
-// ------------------------------------------------------------
-// FUNZIONE DI GIOCO
+/* ------------------------------------------------------------ */
+/* FUNZIONE DI GIOCO                                            */
 
 void game(int pipeIN, int pipeOUT, borders borders){
   int life = 3;

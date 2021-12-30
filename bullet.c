@@ -5,11 +5,10 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
 
   /* Inizializzazione coordinate */
   coordinate coords = startingPoint;
-  coords.emitter=BULLET;
   coords.PID = getpid();
   float mov_x = coords.x;
   float mov_y = coords.y;
-  // prev_coordinate già inizializzate dalla funzione chiamante
+  /* prev_coordinate già inizializzate dalla funzione chiamante */
 
   while(!stop){
     /* Aggiorno coordinate */
