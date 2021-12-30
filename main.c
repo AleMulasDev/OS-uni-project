@@ -1,10 +1,7 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <sys/wait.h>
 #include <locale.h>
-#include <fcntl.h>
 #include "spacecraft.h"
-#include "enemy.h"
+#include "enemies.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
@@ -12,6 +9,8 @@
 #define DELETE_COLOR 1
 #define SPACECRAFT_COLOR 2
 #define BULLET_COLOR 3
+#define ENEMY_COLOR 4
+#define MAX_ENEMIES 10
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */
@@ -30,10 +29,12 @@ int main(){
   /* Inizializzazioni varie        */
   setlocale(LC_ALL, "");
   borders borders;
+  srand(time(NULL));
 
-  int position_pipe[2];          /* Pipe processi -> main*/
-  int hit_pipe[2];               /* Pipe main -> processi*/
+  int position_pipe[2];          /* Pipe processi -> main       */
+  int hit_pipe[2];               /* Pipe main -> processi       */
   int PIDSpacecraft;             /* PID del processo Spacecraft */
+  int PIDenemies;                /* PID del processo enemies    */
 
   /* Inizializzazione pipe         */
   pipe(position_pipe);
@@ -68,6 +69,7 @@ int main(){
   init_pair(DELETE_COLOR, COLOR_BLACK, COLOR_BLACK);
   init_pair(SPACECRAFT_COLOR, COLOR_GREEN, COLOR_BLACK);
   init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
+  init_pair(ENEMY_COLOR, COLOR_WHITE, COLOR_BLACK);
 
 
   /* Creazione processo Spacecraft */
@@ -77,12 +79,21 @@ int main(){
     close(hit_pipe[1]);              /* Chiusura della scrittura */
     spacecraft(hit_pipe[0], position_pipe[1], borders);
   }else{
-    close(position_pipe[1]);         /* Chiusura della scrittura */
-    close(hit_pipe[0]);              /* Chiusura della lettura   */
-    game(position_pipe[0], hit_pipe[1], borders);
-    waitpid(PIDSpacecraft, NULL, 0); /* Attesa del processo Spacecraft */
-    while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
-    endwin();
+    PIDenemies = fork();
+    if(PIDenemies == 0){
+      close(position_pipe[0]);         /* Chiusura della lettura   */
+      close(hit_pipe[1]);              /* Chiusura della scrittura */
+      coordinate_base startingPoint;
+      startingPoint.y = 1; /* 1 per il bordo che è a y=0 */
+      startingPoint.x = 1 + SPACECRAFT_SPRITE_WIDTH + 4;
+      enemies(hit_pipe[0], position_pipe[1], borders, MAX_ENEMIES, startingPoint);
+    }else{
+      close(position_pipe[1]);         /* Chiusura della scrittura */
+      close(hit_pipe[0]);              /* Chiusura della lettura   */
+      game(position_pipe[0], hit_pipe[1], borders);
+      while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
+      endwin();
+    }
   }
   
 }
@@ -105,7 +116,7 @@ void game(int pipeIN, int pipeOUT, borders borders){
         /* Cancello la precedente posizione della nave     */
         attron(COLOR_PAIR(DELETE_COLOR));
         for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
-          mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%6s", "");
+          mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%7s", " ");
         }
 
         /* Stampo nella nuova posizione della nave         */
@@ -113,13 +124,31 @@ void game(int pipeIN, int pipeOUT, borders borders){
         for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
           mvprintw(update.y+i, update.x, "%s", spriteSpacecraft[i]);
         }             
-      break;
+        break;
 
       case BULLET:
         attron(COLOR_PAIR(DELETE_COLOR));
-        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", " ");  /* Cancello la precedente posizione del proiettile */
+        /* Cancello la precedente posizione del proiettile */
+        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", " ");  
         attron(COLOR_PAIR(BULLET_COLOR));
-        mvprintw(update.y, update.x, "%c", projectile);                           /* Stampo nella nuova posizione del proiettile     */
+        /* Stampo nella nuova posizione del proiettile     */
+        mvprintw(update.y, update.x, "%c", projectile);                           
+        break;
+      case ENEMY:
+        if(update.x == -1) return; /* Se coordinata x = -1 allora il processo enemy è terminato */
+        
+        /* Cancello la precedente posizione della nave     */
+        /*attron(COLOR_PAIR(DELETE_COLOR));
+        for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
+          mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%7s", " ");
+        }*/
+
+        /* Stampo nella nuova posizione della nave         */
+        attron(COLOR_PAIR(ENEMY_COLOR));
+        for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
+          mvprintw(update.y+i, update.x, "%s", sprite1Enemy[i]);
+        }
+        break;     
     }
 
     refresh();
