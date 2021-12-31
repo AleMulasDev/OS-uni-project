@@ -2,8 +2,8 @@
 
 
 const int SPACECRAFT_SPRITE_WIDTH = 6;
-const int SPACECRAFT_SPRITE_HEIGHT = 4;
-char* spriteSpacecraft[] = {" /-   ","<[][]>","<[][]>"," \\-   "};
+const int SPACECRAFT_SPRITE_HEIGHT = 3;
+char* spriteSpacecraft[] = {" /-   ","<[][]>"," \\-   "};
 float fireRate = 0.3;
 
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
