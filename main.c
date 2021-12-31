@@ -10,7 +10,6 @@
 #define SPACECRAFT_COLOR 2
 #define BULLET_COLOR 3
 #define ENEMY_COLOR 4
-#define MAX_ENEMIES 10
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */
@@ -85,7 +84,7 @@ int main(){
       close(hit_pipe[1]);              /* Chiusura della scrittura */
       coordinate_base startingPoint;
       startingPoint.y = 1; /* 1 per il bordo che è a y=0 */
-      startingPoint.x = 1 + SPACECRAFT_SPRITE_WIDTH + 4;
+      startingPoint.x = borders.maxx/2;
       enemies(hit_pipe[0], position_pipe[1], borders, MAX_ENEMIES, startingPoint);
     }else{
       close(position_pipe[1]);         /* Chiusura della scrittura */

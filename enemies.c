@@ -9,17 +9,17 @@ vettore generateRandomDirection();
 /* ------------------------------------------------------------ */
 /* Funzione principale                                          */
 void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordinate_base startingPoint){
-  /*int** enemies_pipes = (int**)malloc(sizeof(int*)*max_enemies);
-  enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);*/
-  int enemies_pipes[10][2];
-  enemyPipes enemiesPipes[10];
+  int** enemies_pipes = (int**)malloc(sizeof(int*)*max_enemies);
+  enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);
+  /*int enemies_pipes[12][2];
+  enemyPipes enemiesPipes[12];*/
   enemyPipes toChild;
   int i;
   int pid;
-  borders.maxx = borders.maxx - startingPoint.x;
+  borders.maxx = borders.maxx - startingPoint.x - ENEMY_SPRITE_1_WIDTH;
 
   for(i=0; i<max_enemies; i++){
-    /*enemies_pipes[i] = (int*)malloc(sizeof(int)*2);*/
+    enemies_pipes[i] = (int*)malloc(sizeof(int)*2);
     pipe(enemies_pipes[i]);
     int flags = fcntl(enemies_pipes[i][0], F_GETFL, 0);
     fcntl(enemies_pipes[i][0], F_SETFL, flags | O_NONBLOCK);  /* Imposto la lettura della pipe non bloccante */
@@ -36,33 +36,35 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
     pid = fork();
     if(pid == 0){
       /* Nemico */
-      /*for(i=0; i<max_enemies; i++){
+      for(i=0; i<max_enemies; i++){
         free(enemies_pipes[i]);
       }
       free(enemies_pipes);
-      free(enemiesPipes);*/
+      free(enemiesPipes);
       coordinate_base startingEnemyPoint = {startingPoint.x + offset_spawn.x, startingPoint.y + offset_spawn.y};
       enemy(toChild, borders, generateRandomDirection(), startingEnemyPoint);
       return;
     }else{
-      enemiesPipes[i].PID_child = pid; // Salvo il PID del processo figlio
+      enemiesPipes[enemyCount].PID_child = pid; // Salvo il PID del processo figlio
 
       /* sposto il punto di spawn della prossima navicella nemica */
-      if(offset_spawn.x + ENEMY_SPRITE_1_WIDTH+2 > borders.maxx){
+      if(offset_spawn.x + ENEMY_SPRITE_1_WIDTH+2 >= borders.maxx){
         offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+2);
+        offset_spawn.x = 0;
+      }else{
+        offset_spawn.x += (ENEMY_SPRITE_1_WIDTH+2);
       }
-      offset_spawn.x = (offset_spawn.x + ENEMY_SPRITE_1_WIDTH+2)%borders.maxx;
       enemyCount++;
     }
   }
 
   while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
 
-  /*for(i=0; i<max_enemies; i++){
+  for(i=0; i<max_enemies; i++){
     free(enemies_pipes[i]);
   }
   free(enemies_pipes);
-  free(enemiesPipes);*/
+  free(enemiesPipes);
 }
 
 

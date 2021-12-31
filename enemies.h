@@ -4,6 +4,7 @@
 #include "utils_struct.h"
 #include "enemy.h"
 #include <time.h>
+#define MAX_ENEMIES 40
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
