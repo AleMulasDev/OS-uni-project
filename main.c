@@ -72,7 +72,6 @@ int main(){
   init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
   init_pair(ENEMY_COLOR, COLOR_WHITE, COLOR_BLACK);
 
-
   /* Creazione processo Spacecraft */
   PIDSpacecraft = fork();
   if(PIDSpacecraft == 0){
@@ -160,7 +159,7 @@ void game(int pipeIN, int pipeOUT, borders borders){
           write(pipeOUT, &isHit ,sizeof(coordinate));
           attron(COLOR_PAIR(DELETE_COLOR));
           for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
-            mvprintw(isHit.y+i, update.x, "%7s", " ");
+            mvprintw(isHit.y+i, isHit.x, "%7s", " ");
           }
           break;
       }

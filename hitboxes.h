@@ -9,6 +9,7 @@
 /* DEFINIZIONE PROTOTIPI                                        */
 
 void initializeHistory(int numEnemies);
+void updatePosition(coordinate newItem);
 coordinate checkHitBox(coordinate newItem);
 coordinate_base getHitBox(coordinate item);
 
