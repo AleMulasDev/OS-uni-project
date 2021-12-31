@@ -2,6 +2,7 @@
 #include <locale.h>
 #include "spacecraft.h"
 #include "enemies.h"
+#include "hitboxes.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
@@ -29,6 +30,7 @@ int main(){
   setlocale(LC_ALL, "");
   borders borders;
   srand(time(NULL));
+  initializeHistory(MAX_ENEMIES);
 
   int position_pipe[2];          /* Pipe processi -> main       */
   int hit_pipe[2];               /* Pipe main -> processi       */
@@ -104,6 +106,7 @@ void game(int pipeIN, int pipeOUT, borders borders){
   int life = 3;
   int i=0;
   coordinate update;
+  coordinate isHit;
 
   while(life > 0){
     
@@ -148,6 +151,19 @@ void game(int pipeIN, int pipeOUT, borders borders){
           mvprintw(update.y+i, update.x, "%s", sprite1Enemy[i]);
         }
         break;     
+    }
+    isHit = checkHitBox(update);
+    if(isHit.PID != -1){
+      /* Se PID diverso da -1 ho una hit */
+      switch (isHit.emitter) {
+        case ENEMY:
+          write(pipeOUT, &isHit ,sizeof(coordinate));
+          attron(COLOR_PAIR(DELETE_COLOR));
+          for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
+            mvprintw(isHit.y+i, update.x, "%7s", " ");
+          }
+          break;
+      }
     }
 
     refresh();

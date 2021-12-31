@@ -1,5 +1,8 @@
-game: main.c spacecraft.o enemies.o
-	gcc -o game main.c spacecraft.o enemies.o enemy.o bullet.o utils_struct.o -lncurses -std=c90 -lm
+game: main.c spacecraft.o enemies.o hitboxes.o
+	gcc -o game main.c hitboxes.o spacecraft.o enemies.o enemy.o bullet.o utils_struct.o -lncurses -std=c90 -lm
+
+hitboxes.o: hitboxes.c hitboxes.h spacecraft.c enemy.c
+	gcc -c -o hitboxes.o hitboxes.c
 
 spacecraft.o: spacecraft.c spacecraft.h bullet.o utils_struct.o
 	gcc -c -o spacecraft.o spacecraft.c
