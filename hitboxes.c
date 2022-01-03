@@ -10,7 +10,7 @@ void initializeHistory(int numEnemies){
     int i;
     for(i=0; i<dimHistory;i++){
         lastRecorded[i].PID = -1;
-        /* Inizializzo a -1 il pid in caso non sia ancora stato usato */
+        /* Inizializzo a -1 il pid per specificare che non è ancora stato usato */
     }
 }
 
@@ -20,9 +20,9 @@ void updatePosition(coordinate newItem){
   if(newItem.emitter==BULLET) return;
   for(i=0; i<dimHistory; i++){
     if(lastRecorded[i].PID == newItem.PID){
-      if (newItem.x = -1){
+      if (newItem.x == -1){
         /* Oggetto da eliminare */
-        lastRecorded[i].PID == -1;
+        lastRecorded[i].PID = -1;
       }else{
         lastRecorded[i] = newItem;
       }
@@ -41,12 +41,17 @@ void updatePosition(coordinate newItem){
 coordinate checkHitBox(coordinate newItem){
   int i;
   updatePosition(newItem);
+  if (newItem.x == -1){
+    /* Oggetto da eliminare */
+    newItem.PID = -1;
+    return newItem;
+  }
   coordinate_base dim_hitbox;
   coordinate_base personal_hitbox = getHitBox(newItem);
   coordinate checking;
   for(i=0; i<dimHistory; i++){
     checking = lastRecorded[i];
-    dim_hitbox = getHitBox(lastRecorded[i]);
+    dim_hitbox = getHitBox(checking);
     if(checking.PID == -1 || checking.PID == newItem.PID) continue;
     if(newItem.x >= checking.x && newItem.x <= checking.x + dim_hitbox.x){
       /* Le x collidono */
@@ -55,7 +60,13 @@ coordinate checkHitBox(coordinate newItem){
         return checking;
       }
     }
-
+    if(checking.x >= newItem.x && checking.x <= newItem.x + personal_hitbox.x){
+      /* Le x collidono */
+      if(checking.y >= newItem.y && checking.y <= newItem.y + personal_hitbox.y){
+        /* Le y collidono */
+        return checking;
+      }
+    }
 
   }
   checking.PID = -1;

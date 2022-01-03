@@ -153,6 +153,7 @@ void game(int pipeIN, int pipeOUT, borders borders){
           /* Se coordinata x = -1 allora il processo enemies è terminato */
           hitAction.beingHit = update;
           write(pipeOUT, &hitAction ,sizeof(hitUpdate)); /* Avviso il processo enemies che uno dei suoi figli è terminato */
+          break;
         } 
 
         /* Stampo nella nuova posizione della nave         */
@@ -173,7 +174,15 @@ void game(int pipeIN, int pipeOUT, borders borders){
       hitAction.hitting = update;
       switch (isHit.emitter) {
         case ENEMY:
-          write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+          if(update.emitter == ENEMY){
+            /* Collisione tra 2 nemici, avviso entrambi per farli rimbalzare */
+            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            hitAction.beingHit = update;
+            hitAction.hitting = isHit;
+            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+          }else{
+            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+          }
           break;
       }
     }

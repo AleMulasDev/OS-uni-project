@@ -3,8 +3,12 @@
 
 #include "utils_struct.h"
 #include "enemy.h"
-#include <time.h>
-#define MAX_ENEMIES 40
+
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE MACRO                                            */
+
+#define MAX_ENEMIES 20
+#define SPACE_BETWEEN 8
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
