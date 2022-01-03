@@ -24,6 +24,7 @@
 typedef enum {
   SPACECRAFT,
   ENEMY,
+  ENEMY_LV2,
   BULLET,
   BOMB
 }emitter_type;
@@ -43,6 +44,11 @@ typedef struct {
   coordinate_base prev_coordinate;
   emitter_type emitter;
 } coordinate;
+
+typedef struct {
+  coordinate beingHit;
+  coordinate hitting;
+} hitUpdate;
 
 typedef struct {
   int maxx;

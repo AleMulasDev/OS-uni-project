@@ -20,7 +20,12 @@ void updatePosition(coordinate newItem){
   if(newItem.emitter==BULLET) return;
   for(i=0; i<dimHistory; i++){
     if(lastRecorded[i].PID == newItem.PID){
-      lastRecorded[i] = newItem;
+      if (newItem.x = -1){
+        /* Oggetto da eliminare */
+        lastRecorded[i].PID == -1;
+      }else{
+        lastRecorded[i] = newItem;
+      }
       return;
     }
   }
@@ -42,7 +47,7 @@ coordinate checkHitBox(coordinate newItem){
   for(i=0; i<dimHistory; i++){
     checking = lastRecorded[i];
     dim_hitbox = getHitBox(lastRecorded[i]);
-    if(checking.PID == newItem.PID) continue;
+    if(checking.PID == -1 || checking.PID == newItem.PID) continue;
     if(newItem.x >= checking.x && newItem.x <= checking.x + dim_hitbox.x){
       /* Le x collidono */
       if(newItem.y >= checking.y && newItem.y <= checking.y + dim_hitbox.y){

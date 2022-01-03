@@ -40,7 +40,7 @@ int main(){
   /* Inizializzazione pipe         */
   pipe(position_pipe);
   pipe(hit_pipe);
-  int flags = fcntl(hit_pipe[0], F_GETFL, 0);
+  /*int flags = fcntl(hit_pipe[0], F_GETFL, 0);
   fcntl(hit_pipe[0], F_SETFL, flags | O_NONBLOCK);  /* Imposto la lettura della pipe non bloccante */
 
   /* Inizializzazione ncurses      */
@@ -106,13 +106,19 @@ void game(int pipeIN, int pipeOUT, borders borders){
   int i=0;
   coordinate update;
   coordinate isHit;
+  hitUpdate hitAction;           /* Struttura per l'aggiornamento delle hit */
 
   while(life > 0){
     
     read(pipeIN, &update, sizeof(coordinate));
     switch(update.emitter){
       case SPACECRAFT:
-        if(update.x == -1) return; /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
+        if(update.x == -1){
+          /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
+          hitAction.hitting = update;
+          write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+          return;
+        }
         
         /* Cancello la precedente posizione della nave     */
         attron(COLOR_PAIR(DELETE_COLOR));
@@ -135,14 +141,19 @@ void game(int pipeIN, int pipeOUT, borders borders){
         /* Stampo nella nuova posizione del proiettile     */
         mvprintw(update.y, update.x, "%c", projectile);                           
         break;
-      case ENEMY:
-        if(update.x == -1) return; /* Se coordinata x = -1 allora il processo enemy è terminato */
         
+      case ENEMY:
         /* Cancello la precedente posizione della nave     */
-        /*attron(COLOR_PAIR(DELETE_COLOR));
+        attron(COLOR_PAIR(DELETE_COLOR));
         for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
           mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%7s", " ");
-        }*/
+        }
+
+        if(update.x == -1){
+          /* Se coordinata x = -1 allora il processo enemies è terminato */
+          hitAction.beingHit = update;
+          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); /* Avviso il processo enemies che uno dei suoi figli è terminato */
+        } 
 
         /* Stampo nella nuova posizione della nave         */
         attron(COLOR_PAIR(ENEMY_COLOR));
@@ -151,16 +162,18 @@ void game(int pipeIN, int pipeOUT, borders borders){
         }
         break;     
     }
+
+    /* ------------------------------------------------------------ */
+    /* Controllo HITBOX                                             */
+
     isHit = checkHitBox(update);
     if(isHit.PID != -1){
       /* Se PID diverso da -1 ho una hit */
+      hitAction.beingHit = isHit;
+      hitAction.hitting = update;
       switch (isHit.emitter) {
         case ENEMY:
-          write(pipeOUT, &isHit ,sizeof(coordinate));
-          attron(COLOR_PAIR(DELETE_COLOR));
-          for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
-            mvprintw(isHit.y+i, isHit.x, "%7s", " ");
-          }
+          write(pipeOUT, &hitAction ,sizeof(hitUpdate));
           break;
       }
     }

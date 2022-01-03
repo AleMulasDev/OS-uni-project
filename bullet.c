@@ -4,12 +4,11 @@
 void bullet(int pipeOUT, borders borders, vettore direzione, coordinate startingPoint){
   bool stop = false;
   int i=0;
-
+  borders.maxx--;
   /* Inizializzazione coordinate */
   coordinate coords = startingPoint;
+  coords.emitter = BULLET;
   coords.PID = getpid();
-  double mov_x = coords.x;
-  double mov_y = coords.y;
   /* prev_coordinate già inizializzate dalla funzione chiamante */
   int numMovimenti = abs(direzione.x) + abs(direzione.y); /* Numero di passi da eseguire */
   int changeAfter;

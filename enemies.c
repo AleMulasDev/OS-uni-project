@@ -11,9 +11,10 @@ vettore generateRandomDirection();
 void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordinate_base startingPoint){
   int** enemies_pipes = (int**)malloc(sizeof(int*)*max_enemies);
   enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);
-  /*int enemies_pipes[12][2];
-  enemyPipes enemiesPipes[12];*/
+  hitUpdate update;
   enemyPipes toChild;
+  vettore direzione;
+  int pipeToClose;
   int i;
   int pid;
   borders.maxx = borders.maxx - startingPoint.x - ENEMY_SPRITE_1_WIDTH;
@@ -30,23 +31,26 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
   /* Spawno i nemici */
   int enemyCount = 0;
   coordinate_base offset_spawn = {0,0};
-  while(enemyCount < max_enemies){
+  while(enemyCount < max_enemies || enemyCount < numEnemies.x*numEnemies.y){
     toChild.pipeIN = enemiesPipes[enemyCount].pipeIN;
     toChild.pipeOUT = enemiesPipes[enemyCount].pipeOUT;
+    pipeToClose = enemies_pipes[enemyCount][1];
+    direzione = generateRandomDirection();
     pid = fork();
     if(pid == 0){
       /* Nemico */
+      close(pipeToClose);
       for(i=0; i<max_enemies; i++){
         free(enemies_pipes[i]);
       }
       free(enemies_pipes);
       free(enemiesPipes);
       coordinate_base startingEnemyPoint = {startingPoint.x + offset_spawn.x, startingPoint.y + offset_spawn.y};
-      enemy(toChild, borders, generateRandomDirection(), startingEnemyPoint);
+      enemy(toChild, borders, direzione, startingEnemyPoint);
       return;
     }else{
-      enemiesPipes[enemyCount].PID_child = pid; // Salvo il PID del processo figlio
-
+      enemiesPipes[enemyCount].PID_child = pid; /* Salvo il PID del processo figlio */
+      close(enemies_pipes[enemyCount][0]);
       /* sposto il punto di spawn della prossima navicella nemica */
       if(offset_spawn.x + ENEMY_SPRITE_1_WIDTH+2 >= borders.maxx){
         offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+2);
@@ -55,6 +59,35 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
         offset_spawn.x += (ENEMY_SPRITE_1_WIDTH+2);
       }
       enemyCount++;
+    }
+  }
+
+  while(enemyCount > 0){
+    read(pipeIN, &update, sizeof(hitUpdate));
+    if(update.hitting.x == -1 && update.hitting.emitter == SPACECRAFT){
+      /* Chiudo tutti i processi figli */
+      enemyCount=0;
+      for(i=0; i<max_enemies; i++){
+        if(enemiesPipes[i].PID_child != -1) write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
+      }
+      break;
+    }else{
+      /* Controllo se è un update di chiusura processo figlio */
+      if(update.beingHit.x == -1 && update.beingHit.emitter == ENEMY){
+        for(i=0; i<max_enemies; i++){
+          if(enemiesPipes[i].PID_child == update.beingHit.PID){
+            enemiesPipes[i].PID_child = -1;
+          }
+        }
+      }else{
+        /* Cerco il figlio colpito e gli invio l'aggiornamento */
+        for(i=0; i<max_enemies; i++){
+          if(update.beingHit.PID == enemiesPipes[i].PID_child){
+            write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
+            break;
+          }
+        }
+      }
     }
   }
 
@@ -74,6 +107,7 @@ coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoi
   coordinate_base numEnemies;
   borders.maxx -= startingPoint.x;
   borders.maxy -= startingPoint.y;
+  borders.maxx -= ENEMY_SPRITE_1_WIDTH;
   /* Aggiungo 2 alla grandezza dello sprite per lasciare un bordo vuoto tra le navi */
   numEnemies.x = (borders.maxx - 1) / (ENEMY_SPRITE_1_WIDTH + 2);
   numEnemies.y = (borders.maxy - 1) / (ENEMY_SPRITE_1_HEIGHT + 2);
@@ -82,8 +116,8 @@ coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoi
 
 vettore generateRandomDirection(){
   vettore direzione;
-  direzione.x = (rand() % 2) ? 1 : -1;
-  direzione.y = (rand() % 2) ? 1 : -1;
+  direzione.x = 0;
+  direzione.y = (rand() % 100) > 50 ? 1 : -1;
   direzione.speed = 1;
   return direzione;
 }
