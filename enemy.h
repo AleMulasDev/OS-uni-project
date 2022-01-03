@@ -2,7 +2,6 @@
 #define ENEMY_H
 
 #include "utils_struct.h"
-#include "bullet.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE COSTANTI                                         */
