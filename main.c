@@ -223,6 +223,17 @@ void game(int pipeIN, int pipeOUT, borders border){
             }
           }
           break;
+        case SPACECRAFT:
+          if(update.emitter == BOMB){
+            life--;
+            kill(update.PID, SIGKILL);
+            if(life == 0){
+              kill(isHit.PID, SIGKILL);
+              hitAction.hitting.emitter = SPACECRAFT;
+              hitAction.hitting.x = -1;
+              write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            }
+          }
       }
     }
 
@@ -237,6 +248,7 @@ void game(int pipeIN, int pipeOUT, borders border){
       }
     }
     mvprintw(border.maxy+2, 2, "SCORE: %8d", score);
+    mvprintw(border.maxy+2, border.maxx/2, "LIFE: %8d", life);
 
     refresh();
   }
