@@ -61,7 +61,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
         bombSpawnPoint.emitter = BOMB;
         bombSpawnPoint.x--;
         bombDirection = RIGHT_UP;
-        bombDirection.y = rand() % 100 < 50 ? 1 : -1;
+        bombDirection.y = 0;
         bombDirection.x = bombDirection.x * -1;
         bullet(pipe.pipeOUT, borders, bombDirection, bombSpawnPoint);
         return;

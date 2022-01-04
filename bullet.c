@@ -11,10 +11,14 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
   /* prev_coordinate già inizializzate dalla funzione chiamante */
   int numMovimenti = abs(direzione.x) + abs(direzione.y); /* Numero di passi da eseguire */
   int changeAfter;
-  if(abs(direzione.x) > abs(direzione.y)){
-    changeAfter = abs(direzione.x/direzione.y);
+  if(direzione.y == 0){
+    changeAfter = borders.maxx;
   }else{
-    changeAfter = abs(direzione.y/direzione.x);
+    if(abs(direzione.x) > abs(direzione.y)){
+      changeAfter = abs(direzione.x/direzione.y);
+    }else{
+      changeAfter = abs(direzione.y/direzione.x);
+    }
   }
   while(!stop){
     /* Aggiorno coordinate */
