@@ -7,8 +7,8 @@
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
 
-#define MAX_ENEMIES 20
-#define SPACE_BETWEEN 8
+#define MAX_ENEMIES 40
+#define SPACE_BETWEEN 4
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
