@@ -11,6 +11,7 @@
 #define SPACECRAFT_COLOR 2
 #define BULLET_COLOR 3
 #define ENEMY_COLOR 4
+#define BKGD_COLOR 5
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */
@@ -28,7 +29,7 @@ void game(int pipeIN, int pipeOUT, borders borders);
 int main(){
   /* Inizializzazioni varie        */
   setlocale(LC_ALL, "");
-  borders borders;
+  borders border;
   srand(time(NULL));
   initializeHistory(MAX_ENEMIES);
 
@@ -36,6 +37,7 @@ int main(){
   int hit_pipe[2];               /* Pipe main -> processi       */
   int PIDSpacecraft;             /* PID del processo Spacecraft */
   int PIDenemies;                /* PID del processo enemies    */
+  int Scoreheight = 3;           /* Altezza del tabellone       */
 
   /* Inizializzazione pipe         */
   pipe(position_pipe);
@@ -48,22 +50,25 @@ int main(){
   noecho();
   curs_set(0);
   keypad(stdscr, TRUE);
-  getmaxyx(stdscr, borders.maxy, borders.maxx);
+  getmaxyx(stdscr, border.maxy, border.maxx);
   box(stdscr, ACS_VLINE, ACS_HLINE);
 
   /* Inizializzo il vettore del proiettile in base al rapporto di aspetto del terminale */
   /* Necessario per permettere di colpire anche i nemici in fondo a destra              */
   /* Aggiungo 2 per compensare per eventuali troncature di interi                       */
-  if(borders.maxx > borders.maxy){
-    RIGHT_UP.x = (borders.maxx/borders.maxy)+2;
+  if(border.maxx > border.maxy){
+    RIGHT_UP.x = (border.maxx/border.maxy)+2;
     RIGHT_DOWN.x = RIGHT_UP.x;
   }else{
-    RIGHT_UP.y = (borders.maxy/borders.maxx)+2;
+    RIGHT_UP.y = (border.maxy/border.maxx)+2;
     RIGHT_DOWN.y = RIGHT_UP.y;
   }
   /* Compenso per la presenza del box */
-  borders.maxx-=2;
-  borders.maxy-=2;
+  border.maxx-=2;
+  border.maxy-=2;
+
+  /* Compenso per la presenza del tabellone */
+  border.maxy-=Scoreheight;
 
   /* Inizializzo i colori          */
   start_color();
@@ -71,13 +76,15 @@ int main(){
   init_pair(SPACECRAFT_COLOR, COLOR_GREEN, COLOR_BLACK);
   init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
   init_pair(ENEMY_COLOR, COLOR_WHITE, COLOR_BLACK);
+  init_pair(BKGD_COLOR, COLOR_WHITE, COLOR_BLACK);
+  bkgd(COLOR_PAIR(BKGD_COLOR));
 
   /* Creazione processo Spacecraft */
   PIDSpacecraft = fork();
   if(PIDSpacecraft == 0){
     close(position_pipe[0]);         /* Chiusura della lettura   */
     close(hit_pipe[1]);              /* Chiusura della scrittura */
-    spacecraft(hit_pipe[0], position_pipe[1], borders);
+    spacecraft(hit_pipe[0], position_pipe[1], border);
   }else{
     PIDenemies = fork();
     if(PIDenemies == 0){
@@ -85,23 +92,24 @@ int main(){
       close(hit_pipe[1]);              /* Chiusura della scrittura */
       coordinate_base startingPoint;
       startingPoint.y = 1; /* 1 per il bordo che è a y=0 */
-      startingPoint.x = borders.maxx/2;
-      enemies(hit_pipe[0], position_pipe[1], borders, MAX_ENEMIES, startingPoint);
+      startingPoint.x = border.maxx/2;
+      enemies(hit_pipe[0], position_pipe[1], border, MAX_ENEMIES, startingPoint);
     }else{
       close(position_pipe[1]);         /* Chiusura della scrittura */
       close(hit_pipe[0]);              /* Chiusura della lettura   */
-      game(position_pipe[0], hit_pipe[1], borders);
+      game(position_pipe[0], hit_pipe[1], border);
       while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
       endwin();
     }
-  }
-  
+  } 
 }
 
 /* ------------------------------------------------------------ */
 /* FUNZIONE DI GIOCO                                            */
 
-void game(int pipeIN, int pipeOUT, borders borders){
+void game(int pipeIN, int pipeOUT, borders border){
+  borders realBorder;
+  getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
   int i=0;
   coordinate update;
@@ -109,7 +117,16 @@ void game(int pipeIN, int pipeOUT, borders borders){
   hitUpdate hitAction;           /* Struttura per l'aggiornamento delle hit */
 
   while(life > 0){
-    
+    attron(COLOR_PAIR(BKGD_COLOR));
+    move(border.maxy, 0);
+    addch(ACS_LTEE);
+    for(i=1;i<realBorder.maxx; i++){
+      move(border.maxy, i);
+      addch(ACS_HLINE);
+    }
+    move(border.maxy, border.maxx+1);
+    addch(ACS_RTEE);
+
     read(pipeIN, &update, sizeof(coordinate));
     switch(update.emitter){
       case SPACECRAFT:
