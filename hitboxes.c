@@ -17,7 +17,7 @@ void initializeHistory(int numEnemies){
 void updatePosition(coordinate newItem){
   int i;
   /* Non tengo conto dei proiettili */
-  if(newItem.emitter==BULLET) return;
+  if(newItem.emitter==BULLET || newItem.emitter==BOMB) return;
   for(i=0; i<dimHistory; i++){
     if(lastRecorded[i].PID == newItem.PID){
       if (newItem.x == -1){

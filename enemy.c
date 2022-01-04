@@ -12,6 +12,9 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   hitUpdate receivedUpdate;
   int elapsed = 0;
   int level = 1;
+  int PID;
+  coordinate bombSpawnPoint;
+  vettore bombDirection;
   report.PID = getpid();
   report.emitter = ENEMY;
   report.prev_coordinate.x = startingPoint.x;
@@ -19,6 +22,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   report.x = startingPoint.x;
   report.y = startingPoint.y;
   bool stop = false;
+  srand(getpid());
   while(!stop){
     report.prev_coordinate.x = report.x;
     report.prev_coordinate.y = report.y;
@@ -50,6 +54,19 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     }
     elapsed = 0;
     
+    if(rand() % 100 < BOMB_SPAWN_CHANCE*100){
+      PID = fork();
+      if(PID == 0){
+        bombSpawnPoint = report;
+        bombSpawnPoint.emitter = BOMB;
+        bombSpawnPoint.x--;
+        bombDirection = RIGHT_UP;
+        bombDirection.y = rand() % 100 < 50 ? 1 : -1;
+        bombDirection.x = bombDirection.x * -1;
+        bullet(pipe.pipeOUT, borders, bombDirection, bombSpawnPoint);
+        return;
+      }
+    }
     
     if(report.y + direzione.y < 2 || report.y + direzione.y > borders.maxy - ENEMY_SPRITE_1_HEIGHT){
       direzione.y = direzione.y * -1;

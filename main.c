@@ -16,11 +16,12 @@
 #define ENEMY_COLOR 4
 #define BKGD_COLOR 5
 #define SCOREBOARD_COLOR 6
+#define BOMB_COLOR 7
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */
 
-char projectile = '#';
+char projectile = 'O';
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
@@ -77,10 +78,11 @@ int main(){
   start_color();
   init_pair(DELETE_COLOR, COLOR_BLACK, COLOR_BLACK);
   init_pair(SPACECRAFT_COLOR, COLOR_GREEN, COLOR_BLACK);
-  init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
+  init_pair(BULLET_COLOR, COLOR_RED, COLOR_YELLOW);
   init_pair(ENEMY_COLOR, COLOR_WHITE, COLOR_BLACK);
   init_pair(BKGD_COLOR, COLOR_WHITE, COLOR_BLACK);
   init_pair(SCOREBOARD_COLOR, COLOR_CYAN, COLOR_WHITE);
+  init_pair(BOMB_COLOR, COLOR_YELLOW, COLOR_RED);
   bkgd(COLOR_PAIR(BKGD_COLOR));
 
   /* Creazione processo Spacecraft */
@@ -184,7 +186,15 @@ void game(int pipeIN, int pipeOUT, borders border){
         for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
           mvprintw(update.y+i, update.x, "%s", sprite1Enemy[i]);
         }
-        break;     
+        break;
+      case BOMB:
+        attron(COLOR_PAIR(DELETE_COLOR));
+        /* Cancello la precedente posizione del proiettile */
+        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", ' ');  
+        attron(COLOR_PAIR(BOMB_COLOR));
+        /* Stampo nella nuova posizione del proiettile     */
+        mvprintw(update.y, update.x, "%c", projectile);                           
+        break; 
     }
 
     /* ------------------------------------------------------------ */
