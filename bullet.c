@@ -7,7 +7,6 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
   borders.maxx--;
   /* Inizializzazione coordinate */
   coordinate coords = startingPoint;
-  coords.emitter = BULLET;
   coords.PID = getpid();
   /* prev_coordinate già inizializzate dalla funzione chiamante */
   int numMovimenti = abs(direzione.x) + abs(direzione.y); /* Numero di passi da eseguire */

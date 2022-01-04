@@ -4,7 +4,7 @@
 const int SPACECRAFT_SPRITE_WIDTH = 6;
 const int SPACECRAFT_SPRITE_HEIGHT = 3;
 char* spriteSpacecraft[] = {" /-   ","<[][]>"," \\-   "};
-float fireRate = 0.3;
+float fireRate = 0.09;
 
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
   bool quit = false;
@@ -44,6 +44,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
             coords.x = coords.x + SPACECRAFT_SPRITE_WIDTH;
             coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
             coords.prev_coordinate.x = coords.x;
+            coords.emitter = BULLET;
             bullet(pipeOUT, borders, RIGHT_UP, coords);
             return;
           }else{
@@ -52,6 +53,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
               coords.x = coords.x + SPACECRAFT_SPRITE_WIDTH;
               coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
               coords.prev_coordinate.x = coords.x;
+              coords.emitter = BULLET;
               bullet(pipeOUT, borders, RIGHT_DOWN, coords);
               return;
             }
