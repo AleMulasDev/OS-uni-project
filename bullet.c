@@ -20,6 +20,8 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
       changeAfter = abs(direzione.y/direzione.x);
     }
   }
+  coords.prev_coordinate.x = coords.x;
+  coords.prev_coordinate.y = coords.y;
   while(!stop){
     /* Aggiorno coordinate */
     if(i == changeAfter){

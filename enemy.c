@@ -35,6 +35,8 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
         return;
       }
       switch(receivedUpdate.hitting.emitter){
+        case SPACECRAFT:
+
         case BULLET:
           report.x = -1;
           stop = true;
@@ -74,6 +76,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
 
     if(!stop){
       report.y += direzione.y;
+      report.x += direzione.x;
     }
 
     if(level == 1){

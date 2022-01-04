@@ -123,7 +123,7 @@ coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoi
 
 vettore generateRandomDirection(){
   vettore direzione;
-  direzione.x = 0;
+  direzione.x = -1;
   direzione.y = (rand() % 100) > 50 ? 1 : -1;
   direzione.speed = 1;
   return direzione;

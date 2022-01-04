@@ -104,6 +104,7 @@ int main(){
       close(position_pipe[1]);         /* Chiusura della scrittura */
       close(hit_pipe[0]);              /* Chiusura della lettura   */
       game(position_pipe[0], hit_pipe[1], border);
+      kill(PIDSpacecraft, SIGKILL);
       while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
       endwin();
     }
@@ -124,17 +125,17 @@ void game(int pipeIN, int pipeOUT, borders border){
   coordinate isHit;
   hitUpdate hitAction;           /* Struttura per l'aggiornamento delle hit */
 
-  while(life > 0){
-    attron(COLOR_PAIR(BKGD_COLOR));
-    move(border.maxy, 0);
-    addch(ACS_LTEE);
-    for(i=1;i<realBorder.maxx; i++){
-      move(border.maxy, i);
-      addch(ACS_HLINE);
-    }
-    move(border.maxy, border.maxx+1);
-    addch(ACS_RTEE);
+  attron(COLOR_PAIR(BKGD_COLOR));
+  move(border.maxy, 0);
+  addch(ACS_LTEE);
+  for(i=1;i<realBorder.maxx; i++){
+    move(border.maxy, i);
+    addch(ACS_HLINE);
+  }
+  move(border.maxy, border.maxx+1);
+  addch(ACS_RTEE);
 
+  while(life > 0){
     read(pipeIN, &update, sizeof(coordinate));
     switch(update.emitter){
       case SPACECRAFT:
@@ -200,6 +201,22 @@ void game(int pipeIN, int pipeOUT, borders border){
     /* ------------------------------------------------------------ */
     /* Controllo HITBOX                                             */
 
+    if(update.x == 1 && update.emitter == ENEMY){
+      /* Il nemico ha toccato il bordo sinistro */
+      life--;
+      attron(COLOR_PAIR(DELETE_COLOR));
+      for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
+        mvprintw(update.y+i, update.x, "%7s", " ");
+      }
+
+      /* Avviso della collisione il singolo processo così si chiude, 
+      ma con x != da -1 o chiude tutti i processi nemici */
+      hitAction.beingHit = update;
+      hitAction.hitting.emitter = SPACECRAFT;
+      hitAction.hitting.x = 0; 
+      write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+    }
+
     isHit = checkHitBox(update);
     if(isHit.PID != -1){
       /* Se PID diverso da -1 ho una hit */
@@ -227,14 +244,31 @@ void game(int pipeIN, int pipeOUT, borders border){
           if(update.emitter == BOMB){
             life--;
             kill(update.PID, SIGKILL);
+            attron(COLOR_PAIR(DELETE_COLOR));
+            mvprintw(update.y, update.x, "%c", ' ');
             if(life == 0){
-              kill(isHit.PID, SIGKILL);
               hitAction.hitting.emitter = SPACECRAFT;
               hitAction.hitting.x = -1;
+              attron(COLOR_PAIR(DELETE_COLOR));
+              write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            }
+          }else{
+            if(update.emitter == ENEMY){
+              /* Forzo la chiusura del processo che collide con la navicella madre */
+              life--;
+              hitAction.hitting = isHit;
+              hitAction.beingHit = update;
               write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             }
           }
       }
+    }
+
+    if(life==0){
+      /* Se la navicella è morta, avviso il processo enemies che è terminato */
+      hitAction.hitting.emitter = SPACECRAFT;
+      hitAction.hitting.x = -1;
+      write(pipeOUT, &hitAction ,sizeof(hitUpdate));
     }
 
     /* ------------------------------------------------------------ */

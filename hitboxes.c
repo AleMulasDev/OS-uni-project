@@ -80,6 +80,7 @@ coordinate_base getHitBox(coordinate item){
       toReturn.x = ENEMY_SPRITE_1_WIDTH;
       toReturn.y = ENEMY_SPRITE_1_HEIGHT;
       break;
+    case BOMB:
     case BULLET:
       toReturn.x = toReturn.y = 1;
       break;
