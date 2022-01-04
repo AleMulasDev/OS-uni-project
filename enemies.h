@@ -8,7 +8,8 @@
 /* DEFINIZIONE MACRO                                            */
 
 #define MAX_ENEMIES 40
-#define SPACE_BETWEEN 4
+extern int SPACE_BETWEEN_X;
+extern int SPACE_BETWEEN_Y;
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */

@@ -1,5 +1,8 @@
 #include "enemies.h"
 
+int SPACE_BETWEEN_X = 4;
+int SPACE_BETWEEN_Y = 6;
+
 /* ------------------------------------------------------------ */
 /* Funzione di utilità per calcolare il numero di nemici che ci */
 /* stanno nello schermo                                         */
@@ -41,7 +44,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
     toChild.pipeIN = enemiesPipes[enemyCount].pipeIN;
     toChild.pipeOUT = enemiesPipes[enemyCount].pipeOUT;
     pipeToClose = enemies_pipes[enemyCount][1];
-    direzione = direzioni[offset_spawn.y%(ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN)];
+    direzione = direzioni[offset_spawn.y%(ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN_Y)];
     pid = fork();
     if(pid == 0){
       /* Nemico */
@@ -60,10 +63,10 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       /* sposto il punto di spawn della prossima navicella nemica */
       enemyCount++;
       if(enemyCount%numEnemies.x == 0){
-        offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN);
+        offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN_Y);
         offset_spawn.x = 0;
       }else{
-        offset_spawn.x += (ENEMY_SPRITE_1_WIDTH+SPACE_BETWEEN);
+        offset_spawn.x += (ENEMY_SPRITE_1_WIDTH+SPACE_BETWEEN_X);
       }
     }
   }
@@ -113,8 +116,8 @@ coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoi
   coordinate_base numEnemies;
   borders.maxx = borders.maxx - startingPoint.x;
   borders.maxy = borders.maxy - startingPoint.y;
-  numEnemies.x = (borders.maxx) / (ENEMY_SPRITE_1_WIDTH + SPACE_BETWEEN);
-  numEnemies.y = (borders.maxy) / (ENEMY_SPRITE_1_HEIGHT + SPACE_BETWEEN);
+  numEnemies.x = (borders.maxx) / (ENEMY_SPRITE_1_WIDTH + SPACE_BETWEEN_X);
+  numEnemies.y = (borders.maxy) / (ENEMY_SPRITE_1_HEIGHT + SPACE_BETWEEN_Y);
   return numEnemies;
 }
 
