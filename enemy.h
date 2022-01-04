@@ -12,7 +12,7 @@ extern int ENEMY_SPRITE_1_HEIGHT;
 extern int ENEMY_SPRITE_2_HEIGHT;
 extern char* sprite1Enemy[];
 extern char* sprite2Enemy[];
-#define ENEMY_MOV_SPEED 7
+#define ENEMY_MOV_SPEED 5 /* Velocità di movimento, più basso = più veloce */
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */

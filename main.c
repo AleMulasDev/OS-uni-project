@@ -204,9 +204,9 @@ void game(int pipeIN, int pipeOUT, borders border){
             hitAction.hitting = isHit;
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
           }else{
-            score += ENEMY_LV1_POINT;
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             if(update.emitter == BULLET){
+              score += ENEMY_LV1_POINT;
               kill(update.PID, SIGKILL);
               attron(COLOR_PAIR(DELETE_COLOR));
               mvprintw(update.y, update.x, "%c", ' ');

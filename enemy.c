@@ -10,6 +10,7 @@ char* sprite2Enemy[] = {"/==|","\\==|"};
 void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base startingPoint){
   coordinate report;
   hitUpdate receivedUpdate;
+  int elapsed = 0;
   int level = 1;
   report.PID = getpid();
   report.emitter = ENEMY;
@@ -21,11 +22,12 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   while(!stop){
     report.prev_coordinate.x = report.x;
     report.prev_coordinate.y = report.y;
-    
-    if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
+    while(elapsed < DELAY_MS*ENEMY_MOV_SPEED){
+      if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
       if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
         close(pipe.pipeIN);
         close(pipe.pipeOUT);
+        write(pipe.pipeOUT, &report, sizeof(coordinate));
         return;
       }
       switch(receivedUpdate.hitting.emitter){
@@ -33,13 +35,21 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
           report.x = -1;
           stop = true;
           close(pipe.pipeIN);
+          write(pipe.pipeOUT, &report, sizeof(coordinate));
+          close(pipe.pipeOUT);
+          return;
           break;
 
         case ENEMY:
           direzione.y = direzione.y * -1;
           break;
+        }
       }
+      elapsed += (DELAY_MS*ENEMY_MOV_SPEED)/11;
+      napms((DELAY_MS*ENEMY_MOV_SPEED)/11); /* Piccola attesa per restare al corrente degli update */
     }
+    elapsed = 0;
+    
     
     if(report.y + direzione.y < 2 || report.y + direzione.y > borders.maxy - ENEMY_SPRITE_1_HEIGHT){
       direzione.y = direzione.y * -1;
