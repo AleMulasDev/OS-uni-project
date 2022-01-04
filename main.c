@@ -7,11 +7,15 @@
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
 
+#define SCOREBOARD_HEIGHT 3
+#define ENEMY_LV1_POINT 50
+
 #define DELETE_COLOR 1
 #define SPACECRAFT_COLOR 2
 #define BULLET_COLOR 3
 #define ENEMY_COLOR 4
 #define BKGD_COLOR 5
+#define SCOREBOARD_COLOR 6
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */
@@ -37,7 +41,6 @@ int main(){
   int hit_pipe[2];               /* Pipe main -> processi       */
   int PIDSpacecraft;             /* PID del processo Spacecraft */
   int PIDenemies;                /* PID del processo enemies    */
-  int Scoreheight = 3;           /* Altezza del tabellone       */
 
   /* Inizializzazione pipe         */
   pipe(position_pipe);
@@ -68,7 +71,7 @@ int main(){
   border.maxy-=2;
 
   /* Compenso per la presenza del tabellone */
-  border.maxy-=Scoreheight;
+  border.maxy-=SCOREBOARD_HEIGHT;
 
   /* Inizializzo i colori          */
   start_color();
@@ -77,6 +80,7 @@ int main(){
   init_pair(BULLET_COLOR, COLOR_YELLOW, COLOR_RED);
   init_pair(ENEMY_COLOR, COLOR_WHITE, COLOR_BLACK);
   init_pair(BKGD_COLOR, COLOR_WHITE, COLOR_BLACK);
+  init_pair(SCOREBOARD_COLOR, COLOR_CYAN, COLOR_WHITE);
   bkgd(COLOR_PAIR(BKGD_COLOR));
 
   /* Creazione processo Spacecraft */
@@ -111,7 +115,9 @@ void game(int pipeIN, int pipeOUT, borders border){
   borders realBorder;
   getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
-  int i=0;
+  int score = 0;
+  int i, j;
+  i = j = 0;
   coordinate update;
   coordinate isHit;
   hitUpdate hitAction;           /* Struttura per l'aggiornamento delle hit */
@@ -153,7 +159,7 @@ void game(int pipeIN, int pipeOUT, borders border){
       case BULLET:
         attron(COLOR_PAIR(DELETE_COLOR));
         /* Cancello la precedente posizione del proiettile */
-        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", " ");  
+        mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", ' ');  
         attron(COLOR_PAIR(BULLET_COLOR));
         /* Stampo nella nuova posizione del proiettile     */
         mvprintw(update.y, update.x, "%c", projectile);                           
@@ -198,11 +204,29 @@ void game(int pipeIN, int pipeOUT, borders border){
             hitAction.hitting = isHit;
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
           }else{
+            score += ENEMY_LV1_POINT;
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            if(update.emitter == BULLET){
+              kill(update.PID, SIGKILL);
+              attron(COLOR_PAIR(DELETE_COLOR));
+              mvprintw(update.y, update.x, "%c", ' ');
+            }
           }
           break;
       }
     }
+
+    /* ------------------------------------------------------------ */
+    /* Aggiornamento SCOREBOARD                                     */
+
+    attron(COLOR_PAIR(SCOREBOARD_COLOR));
+    for(j=1; j<=SCOREBOARD_HEIGHT; j++){
+      for(i=1;i<realBorder.maxx-1; i++){
+        move(border.maxy+j, i);
+        addch(' ');
+      }
+    }
+    mvprintw(border.maxy+2, 2, "SCORE: %8d", score);
 
     refresh();
   }
