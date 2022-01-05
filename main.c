@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <locale.h>
+#include <string.h>
 #include "spacecraft.h"
 #include "enemies.h"
 #include "hitboxes.h"
@@ -22,11 +23,13 @@
 /* DEFINIZIONE GLOBALI                                          */
 
 char projectile = 'O';
+int score = 0;
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
 void game(int pipeIN, int pipeOUT, borders borders);
+void endgame(borders border);
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MAIN                                             */
@@ -105,6 +108,7 @@ int main(){
       close(hit_pipe[0]);              /* Chiusura della lettura   */
       game(position_pipe[0], hit_pipe[1], border);
       kill(PIDSpacecraft, SIGKILL);
+      endgame(border);
       while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
       endwin();
     }
@@ -118,7 +122,6 @@ void game(int pipeIN, int pipeOUT, borders border){
   borders realBorder;
   getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
-  int score = 0;
   int i, j;
   i = j = 0;
   coordinate update;
@@ -204,6 +207,7 @@ void game(int pipeIN, int pipeOUT, borders border){
     if(update.x == 1 && update.emitter == ENEMY){
       /* Il nemico ha toccato il bordo sinistro */
       life--;
+      beep();
       attron(COLOR_PAIR(DELETE_COLOR));
       for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
         mvprintw(update.y+i, update.x, "%7s", " ");
@@ -243,6 +247,7 @@ void game(int pipeIN, int pipeOUT, borders border){
         case SPACECRAFT:
           if(update.emitter == BOMB){
             life--;
+            beep();
             kill(update.PID, SIGKILL);
             attron(COLOR_PAIR(DELETE_COLOR));
             mvprintw(update.y, update.x, "%c", ' ');
@@ -256,6 +261,7 @@ void game(int pipeIN, int pipeOUT, borders border){
             if(update.emitter == ENEMY){
               /* Forzo la chiusura del processo che collide con la navicella madre */
               life--;
+              beep();
               hitAction.hitting = isHit;
               hitAction.beingHit = update;
               write(pipeOUT, &hitAction ,sizeof(hitUpdate));
@@ -282,8 +288,40 @@ void game(int pipeIN, int pipeOUT, borders border){
       }
     }
     mvprintw(border.maxy+2, 2, "SCORE: %8d", score);
-    mvprintw(border.maxy+2, border.maxx/2, "LIFE: %8d", life);
+    mvprintw(border.maxy+2, border.maxx/2-8, "LIFE:");
+    for(j=0; j<life; j++){
+      for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
+        mvprintw(border.maxy+i+1, border.maxx/2+j*(SPACECRAFT_SPRITE_WIDTH+4), "%s", spriteSpacecraft[i]);
+      }
+    }
 
     refresh();
   }
+}
+
+/* ------------------------------------------------------------ */
+/* FUNZIONE DI ENDGAME                                          */
+
+void endgame(borders border){
+  int i;
+  int j;
+  char pushToCloseString[] = "Premere un tasto per chiudere...";
+  int pushToCloseStringLength = strlen(pushToCloseString);
+  char scoreObtainedString[] = "Punteggio ottenuto: %d";
+  int scoreObtainedStringLength = strlen(scoreObtainedString);
+  int xStarting = (border.maxx/2)/2;
+  int yStarting = (border.maxy/2)/2;
+  for(i=0;i<border.maxx/2; i++){
+    for(j=0; j<border.maxy/2; j++){
+      attron(COLOR_PAIR(SCOREBOARD_COLOR));
+      mvprintw(yStarting+j, xStarting+i, "%c", ' ');
+    }
+  }
+  attron(COLOR_PAIR(SCOREBOARD_COLOR));
+  mvprintw((border.maxy/2)-1, (border.maxx/2)-(pushToCloseStringLength/2), pushToCloseString);
+  mvprintw((border.maxy/2)+1, (border.maxx/2)-(scoreObtainedStringLength/2), scoreObtainedString, score);
+  refresh();
+  timeout(-1);
+  fflush(stdin);
+  getch();
 }
