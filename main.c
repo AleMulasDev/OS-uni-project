@@ -206,18 +206,18 @@ void game(int pipeIN, int pipeOUT, borders border){
 
     if(update.x == 1 && update.emitter == ENEMY){
       /* Il nemico ha toccato il bordo sinistro */
-      life--;
+      life=0;
       beep();
       attron(COLOR_PAIR(DELETE_COLOR));
       for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
         mvprintw(update.y+i, update.x, "%7s", " ");
       }
 
-      /* Avviso della collisione il singolo processo così si chiude, 
-      ma con x != da -1 o chiude tutti i processi nemici */
+      /* Avviso della collisione i processi enemy, 
+      con x = -1 così chiude tutti i processi nemici */
       hitAction.beingHit = update;
       hitAction.hitting.emitter = SPACECRAFT;
-      hitAction.hitting.x = 0; 
+      hitAction.hitting.x = -1; 
       write(pipeOUT, &hitAction ,sizeof(hitUpdate));
     }
 
