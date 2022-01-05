@@ -11,6 +11,8 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   coordinate report;
   hitUpdate receivedUpdate;
   int elapsed = 0;
+  bool firstBombSpawned = false;
+  int bombElapsed = 0;
   int level = 1;
   int PID;
   coordinate bombSpawnPoint;
@@ -53,9 +55,29 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
       elapsed += (DELAY_MS*ENEMY_MOV_SPEED)/11;
       napms((DELAY_MS*ENEMY_MOV_SPEED)/11); /* Piccola attesa per restare al corrente degli update */
     }
+    bombElapsed += elapsed;
     elapsed = 0;
     
-    if(rand() % 100 < BOMB_SPAWN_CHANCE*100){
+    if(rand() % 100 < BOMB_SPAWN_CHANCE*100 && !firstBombSpawned){
+      firstBombSpawned = true;
+      bombElapsed = 0;
+      PID = fork();
+      if(PID == 0){
+        bombSpawnPoint = report;
+        bombSpawnPoint.emitter = BOMB;
+        bombSpawnPoint.x--;
+        bombDirection = RIGHT_UP;
+        bombDirection.y = 0;
+        bombDirection.x = bombDirection.x * -1;
+        bullet(pipe.pipeOUT, borders, bombDirection, bombSpawnPoint);
+        return;
+      }
+    }
+
+    if(firstBombSpawned && bombElapsed < BOMB_SPAWN_DELAY){
+      bombElapsed += (DELAY_MS*ENEMY_MOV_SPEED);
+    }else if(firstBombSpawned && bombElapsed >= BOMB_SPAWN_DELAY){
+      bombElapsed = 0;
       PID = fork();
       if(PID == 0){
         bombSpawnPoint = report;

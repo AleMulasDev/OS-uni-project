@@ -14,7 +14,8 @@ extern int ENEMY_SPRITE_2_HEIGHT;
 extern char* sprite1Enemy[];
 extern char* sprite2Enemy[];
 #define ENEMY_MOV_SPEED 5 /* Velocità di movimento, più basso = più veloce */
-#define BOMB_SPAWN_CHANCE 0.01 /* Probabilità di spawn di una bomba */
+#define BOMB_SPAWN_CHANCE 0.03 /* Probabilità di spawn di una bomba */
+#define BOMB_SPAWN_DELAY 5000  /* Dopo quanti ms dalla prima bomba ne deve spawnare un'altra */
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
