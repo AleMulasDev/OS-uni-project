@@ -91,3 +91,12 @@ coordinate_base getHitBox(coordinate item){
   }
   return toReturn;
 }
+
+
+bool areThereEnemies(){
+  int i;
+  for(i=0; i<dimHistory; i++){
+    if(lastRecorded[i].PID != -1 && lastRecorded[i].emitter == ENEMY) return true;
+  }
+  return false;
+}

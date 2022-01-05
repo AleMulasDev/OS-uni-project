@@ -31,7 +31,6 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
       if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
         close(pipe.pipeIN);
         close(pipe.pipeOUT);
-        write(pipe.pipeOUT, &report, sizeof(coordinate));
         return;
       }
       switch(receivedUpdate.hitting.emitter){

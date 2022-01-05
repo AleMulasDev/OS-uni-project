@@ -28,8 +28,14 @@ int score = 0;
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-void game(int pipeIN, int pipeOUT, borders borders);
-void endgame(borders border);
+int game(int pipeIN, int pipeOUT, borders borders);
+/*
+  Intero ritornato da game:
+  -1: utente ha premuto Q per chiudere il gioco
+  0 : sconfitta
+  1 : vittoria
+*/
+void endgame(borders border, int gameEndingReason);
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MAIN                                             */
@@ -45,6 +51,7 @@ int main(){
   int hit_pipe[2];               /* Pipe main -> processi       */
   int PIDSpacecraft;             /* PID del processo Spacecraft */
   int PIDenemies;                /* PID del processo enemies    */
+  int gameEndingReason;          /* Risultato della partita     */
 
   /* Inizializzazione pipe         */
   pipe(position_pipe);
@@ -106,9 +113,9 @@ int main(){
     }else{
       close(position_pipe[1]);         /* Chiusura della scrittura */
       close(hit_pipe[0]);              /* Chiusura della lettura   */
-      game(position_pipe[0], hit_pipe[1], border);
+      gameEndingReason = game(position_pipe[0], hit_pipe[1], border);
       kill(PIDSpacecraft, SIGKILL);
-      endgame(border);
+      endgame(border, gameEndingReason);
       while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
       endwin();
     }
@@ -118,7 +125,7 @@ int main(){
 /* ------------------------------------------------------------ */
 /* FUNZIONE DI GIOCO                                            */
 
-void game(int pipeIN, int pipeOUT, borders border){
+int game(int pipeIN, int pipeOUT, borders border){
   borders realBorder;
   getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
@@ -146,7 +153,7 @@ void game(int pipeIN, int pipeOUT, borders border){
           /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
           hitAction.hitting = update;
           write(pipeOUT, &hitAction ,sizeof(hitUpdate));
-          return;
+          return -1;
         }
         
         /* Cancello la precedente posizione della nave     */
@@ -259,11 +266,12 @@ void game(int pipeIN, int pipeOUT, borders border){
             }
           }else{
             if(update.emitter == ENEMY){
-              /* Forzo la chiusura del processo che collide con la navicella madre */
-              life--;
+              /* Forzo la chiusura dei nemici perché uno collide con la navicella madre */
+              life=0;
               beep();
               hitAction.hitting = isHit;
               hitAction.beingHit = update;
+              hitAction.hitting.x = -1;
               write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             }
           }
@@ -275,6 +283,12 @@ void game(int pipeIN, int pipeOUT, borders border){
       hitAction.hitting.emitter = SPACECRAFT;
       hitAction.hitting.x = -1;
       write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+    }
+    if(update.x == -1 && update.emitter == ENEMY){
+      /* Un nemico è morto, controllo gli altri */
+      if(areThereEnemies() == false){
+        return 1; /* Vittoria */
+      }
     }
 
     /* ------------------------------------------------------------ */
@@ -295,29 +309,50 @@ void game(int pipeIN, int pipeOUT, borders border){
       }
     }
 
+    if(areThereEnemies()){
+      mvprintw(border.maxy+1, 2, "%c", 'Y');
+    }else{
+      mvprintw(border.maxy+1, 2, "%c", 'N');
+    }
+
     refresh();
   }
-}
+  return 0; /* Sconfitta */
+} /* Fine funzione game */
 
 /* ------------------------------------------------------------ */
 /* FUNZIONE DI ENDGAME                                          */
 
-void endgame(borders border){
+void endgame(borders border, int gameEndingReason){
+  if(gameEndingReason == -1) return;
   int i;
   int j;
   char pushToCloseString[] = "Premere un tasto per chiudere...";
   int pushToCloseStringLength = strlen(pushToCloseString);
   char scoreObtainedString[] = "Punteggio ottenuto: %d";
   int scoreObtainedStringLength = strlen(scoreObtainedString);
+  char youLost[] = "Hai perso...";
+  int youLostLength = strlen(youLost);
+  char youWin[] = "Hai vinto!";
+  int youWinLength = strlen(youWin);
   int xStarting = (border.maxx/2)/2;
   int yStarting = (border.maxy/2)/2;
+
+  /* Pulisco la zona centrale dello schermo */
   for(i=0;i<border.maxx/2; i++){
     for(j=0; j<border.maxy/2; j++){
       attron(COLOR_PAIR(SCOREBOARD_COLOR));
       mvprintw(yStarting+j, xStarting+i, "%c", ' ');
     }
   }
-  attron(COLOR_PAIR(SCOREBOARD_COLOR));
+
+  if(gameEndingReason == 0){
+    /* Sconfitta */
+    mvprintw((border.maxy/2)-2, (border.maxx/2)-(youLostLength/2), youLost);
+  }else if(gameEndingReason == 1){
+    /* Vittoria */
+    mvprintw((border.maxy/2)-2, (border.maxx/2)-(youWinLength/2), youWin);
+  }  
   mvprintw((border.maxy/2)-1, (border.maxx/2)-(pushToCloseStringLength/2), pushToCloseString);
   mvprintw((border.maxy/2)+1, (border.maxx/2)-(scoreObtainedStringLength/2), scoreObtainedString, score);
   refresh();

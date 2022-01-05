@@ -85,6 +85,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       if(update.beingHit.x == -1 && update.beingHit.emitter == ENEMY){
         for(i=0; i<max_enemies; i++){
           if(enemiesPipes[i].PID_child == update.beingHit.PID){
+            enemyCount--;
             enemiesPipes[i].PID_child = -1;
           }
         }
