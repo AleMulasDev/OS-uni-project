@@ -58,6 +58,11 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     bombElapsed += elapsed;
     elapsed = 0;
     
+    /* Le bombe spawnano in modo random la prima volta, con una percentuale di probabilità
+    ** definita in BOMB_SPAWN_CHANGE, dopo di ché spawnano ogni BOMB_SPAWN_DELAY
+    ** per calcolare il delay sommo l'attesa a ogni ciclo principale + l'attesa effettuata 
+    ** qua sopra, in attesa di aggiornamenti dal processo padre
+    */
     if(rand() % 100 < BOMB_SPAWN_CHANCE*100 && !firstBombSpawned){
       firstBombSpawned = true;
       bombElapsed = 0;
