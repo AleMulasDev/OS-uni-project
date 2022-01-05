@@ -206,7 +206,7 @@ void game(int pipeIN, int pipeOUT, borders border){
 
     if(update.x == 1 && update.emitter == ENEMY){
       /* Il nemico ha toccato il bordo sinistro */
-      life--;
+      life=0;
       beep();
       attron(COLOR_PAIR(DELETE_COLOR));
       for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
