@@ -1,7 +1,7 @@
 #include "enemies.h"
 
-int SPACE_BETWEEN_X = 4;
-int SPACE_BETWEEN_Y = 6;
+int SPACE_BETWEEN_X = 8;
+int SPACE_BETWEEN_Y = 8;
 
 /* ------------------------------------------------------------ */
 /* Funzione di utilità per calcolare il numero di nemici che ci */
@@ -81,20 +81,19 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       }
       break;
     }else{
-      /* Controllo se è un update di chiusura processo figlio */
+      /* Controllo se è un update di eliminazione nave di primo livello */
       if(update.beingHit.x == -1 && update.beingHit.emitter == ENEMY){
-        for(i=0; i<max_enemies; i++){
-          if(enemiesPipes[i].PID_child == update.beingHit.PID){
-            enemyCount--;
-            enemiesPipes[i].PID_child = -1;
-          }
-        }
+        enemyCount+=3; /* -1 nave di primo livello + 4 navi di secondo livello */
       }else{
-        /* Cerco il figlio colpito e gli invio l'aggiornamento */
-        for(i=0; i<max_enemies; i++){
-          if(update.beingHit.PID == enemiesPipes[i].PID_child){
-            write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
-            break;
+        if(update.beingHit.x == -1 && update.beingHit.emitter == ENEMY_LV2){
+          enemyCount--;
+        }else{
+          /* Cerco il figlio colpito e gli invio l'aggiornamento */
+          for(i=0; i<max_enemies; i++){
+            if(update.beingHit.PID == enemiesPipes[i].PID_child){
+              write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
+              break;
+            }
           }
         }
       }

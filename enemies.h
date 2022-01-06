@@ -7,7 +7,7 @@
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
 
-#define MAX_ENEMIES 40
+#define MAX_ENEMIES 10
 extern int SPACE_BETWEEN_X;
 extern int SPACE_BETWEEN_Y;
 

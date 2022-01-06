@@ -186,9 +186,10 @@ int game(int pipeIN, int pipeOUT, borders border){
         }
 
         if(update.x == -1){
-          /* Se coordinata x = -1 allora il processo enemies è terminato */
+          /* Se coordinata x = -1 allora la nave di primo livello è morta */
           hitAction.beingHit = update;
-          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); /* Avviso il processo enemies che uno dei suoi figli è terminato */
+          /* Avviso il processo enemies che uno dei suoi figli è aumentato di livello */
+          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
           break;
         } 
 
@@ -196,6 +197,27 @@ int game(int pipeIN, int pipeOUT, borders border){
         attron(COLOR_PAIR(ENEMY_COLOR));
         for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
           mvprintw(update.y+i, update.x, "%s", sprite1Enemy[i]);
+        }
+        break;
+      case ENEMY_LV2:
+        /* Cancello la precedente posizione della nave     */
+        attron(COLOR_PAIR(DELETE_COLOR));
+        for(i=0; i<ENEMY_SPRITE_2_HEIGHT; i++){
+          mvprintw(update.prev_coordinate.y+i, update.prev_coordinate.x, "%4s", " ");
+        }
+
+        if(update.x == -1){
+          /* Se coordinata x = -1 allora una nave di secondo livello è morta */
+          hitAction.beingHit = update;
+          /* Avviso il processo enemies che una nave di secondo livello è morta */
+          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
+          break;
+        } 
+
+        /* Stampo nella nuova posizione della nave         */
+        attron(COLOR_PAIR(ENEMY_COLOR));
+        for(i=0; i<ENEMY_SPRITE_2_HEIGHT; i++){
+          mvprintw(update.y+i, update.x, "%s", sprite2Enemy[i]);
         }
         break;
       case BOMB:
@@ -211,7 +233,7 @@ int game(int pipeIN, int pipeOUT, borders border){
     /* ------------------------------------------------------------ */
     /* Controllo HITBOX                                             */
 
-    if(update.x == 1 && update.emitter == ENEMY){
+    if(update.x == 1 && (update.emitter == ENEMY || update.emitter == ENEMY_LV2)){
       /* Il nemico ha toccato il bordo sinistro */
       life=0;
       beep();
@@ -223,6 +245,7 @@ int game(int pipeIN, int pipeOUT, borders border){
       hitAction.beingHit = isHit;
       hitAction.hitting = update;
       switch (isHit.emitter) {
+        case ENEMY_LV2:
         case ENEMY:
           if(update.emitter == ENEMY){
             /* Collisione tra 2 nemici, avviso entrambi per farli rimbalzare */
@@ -234,7 +257,7 @@ int game(int pipeIN, int pipeOUT, borders border){
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             if(update.emitter == BULLET){
               score += ENEMY_LV1_POINT;
-              kill(update.PID, SIGKILL);
+              kill(update.PID, SIGKILL); /* Cancello il proiettile */
               attron(COLOR_PAIR(DELETE_COLOR));
               mvprintw(update.y, update.x, "%c", ' ');
             }
@@ -296,12 +319,6 @@ int game(int pipeIN, int pipeOUT, borders border){
       for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
         mvprintw(border.maxy+i+1, border.maxx/2+j*(SPACECRAFT_SPRITE_WIDTH+4), "%s", spriteSpacecraft[i]);
       }
-    }
-
-    if(areThereEnemies()){
-      mvprintw(border.maxy+1, 2, "%c", 'Y');
-    }else{
-      mvprintw(border.maxy+1, 2, "%c", 'N');
     }
 
     refresh();

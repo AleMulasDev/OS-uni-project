@@ -4,8 +4,8 @@ coordinate* lastRecorded;
 int dimHistory;
 
 void initializeHistory(int numEnemies){
-    /* Salvo la posizione di tutti i nemici + della navicella */
-    dimHistory = numEnemies+1;
+    /* Salvo la posizione di tutti i nemici (*4 per il secondo livello) + della navicella */
+    dimHistory = (numEnemies*4)+1;
     lastRecorded = (coordinate*)malloc(sizeof(coordinate)*dimHistory);
     int i;
     for(i=0; i<dimHistory;i++){
@@ -87,6 +87,10 @@ coordinate_base getHitBox(coordinate item){
     case SPACECRAFT:
       toReturn.x = SPACECRAFT_SPRITE_WIDTH;
       toReturn.y = SPACECRAFT_SPRITE_HEIGHT;
+      break;
+    case ENEMY_LV2:
+      toReturn.x = ENEMY_SPRITE_2_WIDTH;
+      toReturn.y = ENEMY_SPRITE_2_HEIGHT;
       break;
   }
   return toReturn;
