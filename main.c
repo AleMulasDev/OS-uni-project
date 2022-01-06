@@ -215,17 +215,6 @@ int game(int pipeIN, int pipeOUT, borders border){
       /* Il nemico ha toccato il bordo sinistro */
       life=0;
       beep();
-      attron(COLOR_PAIR(DELETE_COLOR));
-      for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
-        mvprintw(update.y+i, update.x, "%7s", " ");
-      }
-
-      /* Avviso della collisione i processi enemy, 
-      con x = -1 così chiude tutti i processi nemici */
-      hitAction.beingHit = update;
-      hitAction.hitting.emitter = SPACECRAFT;
-      hitAction.hitting.x = -1; 
-      write(pipeOUT, &hitAction ,sizeof(hitUpdate));
     }
 
     isHit = checkHitBox(update);
