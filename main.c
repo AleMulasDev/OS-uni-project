@@ -10,6 +10,7 @@
 
 #define SCOREBOARD_HEIGHT 3
 #define ENEMY_LV1_POINT 50
+#define ENEMY_LV2_POINT 100
 
 #define DELETE_COLOR 1
 #define SPACECRAFT_COLOR 2
@@ -256,7 +257,8 @@ int game(int pipeIN, int pipeOUT, borders border){
           }else{
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             if(update.emitter == BULLET){
-              score += ENEMY_LV1_POINT;
+              if(isHit.emitter == ENEMY)     score += ENEMY_LV1_POINT;
+              if(isHit.emitter == ENEMY_LV2) score += ENEMY_LV2_POINT;
               kill(update.PID, SIGKILL); /* Cancello il proiettile */
               attron(COLOR_PAIR(DELETE_COLOR));
               mvprintw(update.y, update.x, "%c", ' ');
