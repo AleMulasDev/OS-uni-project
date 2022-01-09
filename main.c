@@ -25,6 +25,7 @@
 
 char projectile = 'O';
 int score = 0;
+bool invincible = false;
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
@@ -109,7 +110,7 @@ int main(){
       close(hit_pipe[1]);              /* Chiusura della scrittura */
       coordinate_base startingPoint;
       startingPoint.y = 1; /* 1 per il bordo che è a y=0 */
-      startingPoint.x = border.maxx/2;
+      startingPoint.x = border.maxx - (border.maxx/4);
       enemies(hit_pipe[0], position_pipe[1], border, MAX_ENEMIES, startingPoint);
     }else{
       close(position_pipe[1]);         /* Chiusura della scrittura */
@@ -291,7 +292,7 @@ int game(int pipeIN, int pipeOUT, borders border){
           }
       }
     }
-
+    if(invincible) life = 3;
     if(life==0){
       /* Se la navicella è morta, avviso il processo enemies che è terminato */
       hitAction.hitting.emitter = SPACECRAFT;
