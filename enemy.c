@@ -35,6 +35,10 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   report.y = startingPoint.y;
   bool stop = false;
   srand(getpid());
+
+  /* Mando un singolo update, anche se fuori dalla zona visibile, per registrare il nemico nelle hitbox */
+  if(report.x > borders.maxx) write(pipe.pipeOUT, &report, sizeof(coordinate));
+  
   while(report.x >= borders.maxx - ENEMY_SPRITE_1_WIDTH){
     /* Controllo se arriva una richiesta di chiusura forzata e avanzo verso sinistra
       finché non arrivo alla zona visibile */
