@@ -4,7 +4,7 @@
 const int SPACECRAFT_SPRITE_WIDTH = 6;
 const int SPACECRAFT_SPRITE_HEIGHT = 3;
 char* spriteSpacecraft[] = {" /-   ","<[][]>"," \\-   "};
-float fireRate = 0.09;
+float fireRate = 0.15;
 
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
   bool quit = false;
