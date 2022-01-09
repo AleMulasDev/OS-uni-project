@@ -123,6 +123,15 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
         bombSpawnPoint = report;
         bombSpawnPoint.emitter = BOMB;
         bombSpawnPoint.x--;
+        if(level == 2){
+          for(index=0;index<4;index++){
+            if(hitCount[index] < N_HIT_LV2_ENEMY){
+              bombSpawnPoint.x += getOffset(index).x;
+              bombSpawnPoint.y += getOffset(index).y;
+              break;
+            }
+          }
+        }
         bombDirection = RIGHT_UP;
         bombDirection.y = 0;
         bombDirection.x = bombDirection.x * -1;
