@@ -35,7 +35,12 @@ void updatePosition(coordinate newItem){
         }else{
           /* Update generico di posizione                                                                      */
           /* Verifico che sia un update dell'oggetto corretto (gli enemy lv2 sono 4x entità con lo stesso pid) */
-          if(lastRecorded[i].x == newItem.prev_coordinate.x && lastRecorded[i].y == newItem.prev_coordinate.y){
+          if(newItem.emitter == ENEMY_LV2){
+            if(lastRecorded[i].x == newItem.prev_coordinate.x && lastRecorded[i].y == newItem.prev_coordinate.y){
+              lastRecorded[i] = newItem;
+              return;
+            } 
+          }else{
             lastRecorded[i] = newItem;
             return;
           }
@@ -117,4 +122,16 @@ bool areThereEnemies(){
     if(lastRecorded[i].PID != -1 && (lastRecorded[i].emitter == ENEMY || lastRecorded[i].emitter == ENEMY_LV2)) return true;
   }
   return false;
+}
+
+int getNumEnemies(int lvl){
+  int i;
+  int count=0;
+  for(i=0; i<dimHistory; i++){
+    if(lastRecorded[i].PID != -1){
+      if(lvl == 1 && lastRecorded[i].emitter == ENEMY) count++;
+      if(lvl == 2 && lastRecorded[i].emitter == ENEMY_LV2) count++;
+    }
+  }
+  return count;
 }

@@ -13,6 +13,7 @@ void updatePosition(coordinate newItem);
 coordinate checkHitBox(coordinate newItem);
 coordinate_base getHitBox(coordinate item);
 bool areThereEnemies();
+int getNumEnemies(int lvl);
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE GLOBALI                                          */

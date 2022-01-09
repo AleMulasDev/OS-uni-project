@@ -25,7 +25,7 @@
 
 char projectile = 'O';
 int score = 0;
-bool invincible = false;
+bool invincible = true;
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
@@ -131,11 +131,15 @@ int game(int pipeIN, int pipeOUT, borders border){
   borders realBorder;
   getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
+  int lv1Killed = 0;
+  int lv2Killed = 0;
   int i, j;
   i = j = 0;
   coordinate update;
   coordinate isHit;
   hitUpdate hitAction;           /* Struttura per l'aggiornamento delle hit */
+  int mapSize = border.maxx - (border.maxx/4);
+  mapSize += ((ENEMY_SPRITE_1_WIDTH+SPACE_BETWEEN_X)*MAX_ENEMIES);
 
   attron(COLOR_PAIR(BKGD_COLOR));
   move(border.maxy, 0);
@@ -190,6 +194,7 @@ int game(int pipeIN, int pipeOUT, borders border){
         if(update.x == -1){
           /* Se coordinata x = -1 allora la nave di primo livello è morta */
           hitAction.beingHit = update;
+          lv1Killed++;
           /* Avviso il processo enemies che uno dei suoi figli è aumentato di livello */
           write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
           break;
@@ -211,6 +216,7 @@ int game(int pipeIN, int pipeOUT, borders border){
         if(update.x == -1){
           /* Se coordinata x = -1 allora una nave di secondo livello è morta */
           hitAction.beingHit = update;
+          lv2Killed++;
           /* Avviso il processo enemies che una nave di secondo livello è morta */
           write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
           break;
@@ -316,7 +322,9 @@ int game(int pipeIN, int pipeOUT, borders border){
         addch(' ');
       }
     }
-    mvprintw(border.maxy+2, 2, "SCORE: %8d", score);
+    mvprintw(border.maxy+2, 2, "SCORE: %5d", score);
+    mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,MAX_ENEMIES);
+    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,MAX_ENEMIES*4);
     mvprintw(border.maxy+2, border.maxx/2-8, "LIFE:");
     for(j=0; j<life; j++){
       for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
