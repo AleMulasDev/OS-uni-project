@@ -20,10 +20,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
   enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);
   coordinate_base numEnemies = calculateNumEnemies(borders, startingPoint);
 
-  vettore* direzioni = (vettore*)malloc(sizeof(vettore)*numEnemies.y);
-  for(i=0; i<numEnemies.y; i++){
-    direzioni[i] = generateRandomDirection();
-  }
+  vettore randDirection = generateRandomDirection();
 
   hitUpdate update;
   enemyPipes toChild;
@@ -40,11 +37,11 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
   /* Spawno i nemici */
   int enemyCount = 0;
   coordinate_base offset_spawn = {0,0};
-  while((enemyCount < max_enemies) && (enemyCount < numEnemies.x*numEnemies.y)){
+  while(enemyCount < max_enemies){
     toChild.pipeIN = enemiesPipes[enemyCount].pipeIN;
     toChild.pipeOUT = enemiesPipes[enemyCount].pipeOUT;
     pipeToClose = enemies_pipes[enemyCount][1];
-    direzione = direzioni[offset_spawn.y%(ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN_Y)];
+    direzione = randDirection;
     pid = fork();
     if(pid == 0){
       /* Nemico */
@@ -62,11 +59,11 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       close(enemies_pipes[enemyCount][0]);
       /* sposto il punto di spawn della prossima navicella nemica */
       enemyCount++;
-      if(enemyCount%numEnemies.x == 0){
-        offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN_Y);
-        offset_spawn.x = 0;
-      }else{
+      if(enemyCount%numEnemies.y == 0){
         offset_spawn.x += (ENEMY_SPRITE_1_WIDTH+SPACE_BETWEEN_X);
+        offset_spawn.y = 0;
+      }else{
+        offset_spawn.y += (ENEMY_SPRITE_1_HEIGHT+SPACE_BETWEEN_Y);
       }
     }
   }

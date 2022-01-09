@@ -19,6 +19,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   int elapsed = 0;
   bool firstBombSpawned = false;
   int bombElapsed = 0;
+  int toWait = 0;
   int level = 1;
   int hitCount[4] = {0,0,0,0};
   int PID;
@@ -34,6 +35,19 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   report.y = startingPoint.y;
   bool stop = false;
   srand(getpid());
+  while(report.x >= borders.maxx - ENEMY_SPRITE_1_WIDTH){
+    /* Controllo se arriva una richiesta di chiusura forzata e avanzo verso sinistra
+      finché non arrivo alla zona visibile */
+    if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
+      if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
+        close(pipe.pipeIN);
+        close(pipe.pipeOUT);
+        return;
+      }
+    }
+    report.x += direzione.x;
+    napms(DELAY_MS*ENEMY_MOV_SPEED);
+  }
   while(!stop){
     report.prev_coordinate.x = report.x;
     report.prev_coordinate.y = report.y;
@@ -108,8 +122,9 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
       napms((DELAY_MS*ENEMY_MOV_SPEED)/11); /* Piccola attesa per restare al corrente degli update */
     }
     bombElapsed += elapsed;
+    toWait = (DELAY_MS*ENEMY_MOV_SPEED) - elapsed;
     elapsed = 0;
-    
+
     /* Le bombe spawnano in modo random la prima volta, con una percentuale di probabilità
     ** definita in BOMB_SPAWN_CHANGE, dopo di ché spawnano ogni BOMB_SPAWN_DELAY
     ** per calcolare il delay sommo l'attesa a ogni ciclo principale + l'attesa effettuata 
@@ -179,7 +194,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
         if(hitCount[index] < N_HIT_LV2_ENEMY) write(pipe.pipeOUT, &tmpReport, sizeof(coordinate));
       }
     }
-    napms(DELAY_MS*ENEMY_MOV_SPEED);
+    napms(toWait);
   }
 }
 
