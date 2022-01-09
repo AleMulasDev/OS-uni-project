@@ -11,6 +11,8 @@
 extern int SPACE_BETWEEN_X;
 extern int SPACE_BETWEEN_Y;
 
+
+
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 

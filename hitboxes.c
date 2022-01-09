@@ -1,7 +1,14 @@
 #include "hitboxes.h"
 
+
+/* ------------------------------------------------------------ */
+/* VARIABILI GLOBALI                                            */
 coordinate* lastRecorded;
 int dimHistory;
+/* ------------------------------------------------------------ */
+
+
+
 
 void initializeHistory(int numEnemies){
     /* Salvo la posizione di tutti i nemici (*4 per il secondo livello) + della navicella */
@@ -13,6 +20,8 @@ void initializeHistory(int numEnemies){
         /* Inizializzo a -1 il pid per specificare che non è ancora stato usato */
     }
 }
+
+
 
 void updatePosition(coordinate newItem){
   int i;
@@ -57,6 +66,11 @@ void updatePosition(coordinate newItem){
   }
 }
 
+
+
+/* ------------------------------------------------------------ */
+/* FUNZIONE PRINCIPALE DI CONTROLLO COLLISIONI                  */
+/* ------------------------------------------------------------ */
 coordinate checkHitBox(coordinate newItem){
   int i;
   updatePosition(newItem);
@@ -92,6 +106,8 @@ coordinate checkHitBox(coordinate newItem){
   return checking;
 }
 
+
+
 coordinate_base getHitBox(coordinate item){
   coordinate_base toReturn;
   switch(item.emitter){
@@ -116,6 +132,9 @@ coordinate_base getHitBox(coordinate item){
 }
 
 
+
+/* ------------------------------------------------------------ */
+/* FUNZIONI DI UTILITÀ PER IL CICLO DI GIOCO PRINCIPALE         */
 bool areThereEnemies(){
   int i;
   for(i=0; i<dimHistory; i++){

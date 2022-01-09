@@ -1,18 +1,25 @@
 #include "spacecraft.h"
 
-
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE COSTANTI                                         */
 const int SPACECRAFT_SPRITE_WIDTH = 6;
 const int SPACECRAFT_SPRITE_HEIGHT = 3;
 char* spriteSpacecraft[] = {" /-   ","<[][]>"," \\-   "};
 float fireRate = 0.15;
+/* ------------------------------------------------------------ */
 
+
+
+/* ------------------------------------------------------------ */
+/* FUNZIONE PRINCIPALE                                          */
+/* ------------------------------------------------------------ */
 void spacecraft(int pipeIN, int pipeOUT, borders borders){
   bool quit = false;
   int pid;
   timeout(0);
   float elapsedTime = 0;
 
-  /* Inizializzazione coordinate */
+  /* ------------ Inizializzo le coordinate ------------ */
   coordinate coords;
   coords.emitter=SPACECRAFT;
   coords.x = 1;
@@ -22,7 +29,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
   coords.prev_coordinate.y = coords.y;
 
   fflush(stdin);
-  /* ciclo principale */
+  /* ---------------- Ciclo principale  ---------------- */
   while(!quit){
     int c = getch();
     switch(c){

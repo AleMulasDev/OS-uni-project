@@ -58,8 +58,6 @@ int main(){
   /* Inizializzazione pipe         */
   pipe(position_pipe);
   pipe(hit_pipe);
-  /*int flags = fcntl(hit_pipe[0], F_GETFL, 0);
-  fcntl(hit_pipe[0], F_SETFL, flags | O_NONBLOCK);  /* Imposto la lettura della pipe non bloccante */
 
   /* Inizializzazione ncurses      */
   initscr();
@@ -97,13 +95,15 @@ int main(){
   init_pair(BOMB_COLOR, COLOR_YELLOW, COLOR_RED);
   bkgd(COLOR_PAIR(BKGD_COLOR));
 
-  /* Creazione processo Spacecraft */
+   /* --------------- CREAZIONE PROCESSI --------------- */
   PIDSpacecraft = fork();
   if(PIDSpacecraft == 0){
+    /* ------ spacecraft  ------ */
     close(position_pipe[0]);         /* Chiusura della lettura   */
     close(hit_pipe[1]);              /* Chiusura della scrittura */
     spacecraft(hit_pipe[0], position_pipe[1], border);
   }else{
+    /* -------- enemies -------- */
     PIDenemies = fork();
     if(PIDenemies == 0){
       close(position_pipe[0]);         /* Chiusura della lettura   */
@@ -113,6 +113,7 @@ int main(){
       startingPoint.x = border.maxx - (border.maxx/4);
       enemies(hit_pipe[0], position_pipe[1], border, MAX_ENEMIES, startingPoint);
     }else{
+      /* ---- game function ---- */
       close(position_pipe[1]);         /* Chiusura della scrittura */
       close(hit_pipe[0]);              /* Chiusura della lettura   */
       gameEndingReason = game(position_pipe[0], hit_pipe[1], border);
@@ -125,9 +126,11 @@ int main(){
 }
 
 /* ------------------------------------------------------------ */
-/* FUNZIONE DI GIOCO                                            */
-
+/* FUNZIONE PRINCIPALE DEL GIOCO                                */
+/* ------------------------------------------------------------ */
 int game(int pipeIN, int pipeOUT, borders border){
+
+  /* ------------- Dichiarazioni variabili ------------- */
   borders realBorder;
   getmaxyx(stdscr, realBorder.maxy, realBorder.maxx);
   int life = 3;
@@ -141,6 +144,7 @@ int game(int pipeIN, int pipeOUT, borders border){
   int mapSize = border.maxx - (border.maxx/4);
   mapSize += ((ENEMY_SPRITE_1_WIDTH+SPACE_BETWEEN_X)*MAX_ENEMIES);
 
+  /* ------- Bordo tra il gioco e la scoreboard  ------- */
   attron(COLOR_PAIR(BKGD_COLOR));
   move(border.maxy, 0);
   addch(ACS_LTEE);
@@ -151,10 +155,16 @@ int game(int pipeIN, int pipeOUT, borders border){
   move(border.maxy, border.maxx+1);
   addch(ACS_RTEE);
 
+  /* --------------------------------------------------- */
+  /* ------------ CICLO DI GIOCO PRINCIPALE ------------ */
+  /* --------------------------------------------------- */
   while(life > 0){
     read(pipeIN, &update, sizeof(coordinate));
+
+    /* ---------- STAMPA DEGLI AGGIORNAMENTI  ---------- */
     switch(update.emitter){
-      case SPACECRAFT:
+      /*-------------------------------------------------*/
+      case SPACECRAFT:  /* --------- SPACECRAFT ---------*/
         if(update.x == -1){
           /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
           hitAction.hitting = update;
@@ -175,7 +185,8 @@ int game(int pipeIN, int pipeOUT, borders border){
         }             
         break;
 
-      case BULLET:
+      /*-------------------------------------------------*/
+      case BULLET:  /* ----------- PROIETTILE -----------*/
         attron(COLOR_PAIR(DELETE_COLOR));
         /* Cancello la precedente posizione del proiettile */
         mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", ' ');  
@@ -183,8 +194,9 @@ int game(int pipeIN, int pipeOUT, borders border){
         /* Stampo nella nuova posizione del proiettile     */
         mvprintw(update.y, update.x, "%c", projectile);                           
         break;
-        
-      case ENEMY:
+
+      /*-------------------------------------------------*/
+      case ENEMY:  /* ------------- NEMICO  -------------*/
         /* Cancello la precedente posizione della nave     */
         attron(COLOR_PAIR(DELETE_COLOR));
         for(i=0; i<ENEMY_SPRITE_1_HEIGHT; i++){
@@ -206,7 +218,9 @@ int game(int pipeIN, int pipeOUT, borders border){
           mvprintw(update.y+i, update.x, "%s", sprite1Enemy[i]);
         }
         break;
-      case ENEMY_LV2:
+
+      /*-------------------------------------------------*/
+      case ENEMY_LV2:  /* --------- NEMICO LV2  ---------*/
         /* Cancello la precedente posizione della nave     */
         attron(COLOR_PAIR(DELETE_COLOR));
         for(i=0; i<ENEMY_SPRITE_2_HEIGHT; i++){
@@ -228,7 +242,9 @@ int game(int pipeIN, int pipeOUT, borders border){
           mvprintw(update.y+i, update.x, "%s", sprite2Enemy[i]);
         }
         break;
-      case BOMB:
+      
+      /*-------------------------------------------------*/
+      case BOMB:  /* -------------- BOMBA  --------------*/
         attron(COLOR_PAIR(DELETE_COLOR));
         /* Cancello la precedente posizione del proiettile */
         mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", ' ');  
@@ -238,8 +254,9 @@ int game(int pipeIN, int pipeOUT, borders border){
         break; 
     }
 
+
     /* ------------------------------------------------------------ */
-    /* Controllo HITBOX                                             */
+    /* Controllo Bordo sinistro                                     */
 
     if(update.x == 1 && (update.emitter == ENEMY || update.emitter == ENEMY_LV2)){
       /* Il nemico ha toccato il bordo sinistro */
@@ -247,6 +264,9 @@ int game(int pipeIN, int pipeOUT, borders border){
       beep();
     }
 
+
+    /* ------------------------------------------------------------ */
+    /* Controllo HITBOX                                             */
     isHit = checkHitBox(update);
     if(isHit.PID != -1){
       /* Se PID diverso da -1 ho una hit */
@@ -262,6 +282,7 @@ int game(int pipeIN, int pipeOUT, borders border){
             hitAction.hitting = isHit;
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
           }else{
+            /* Qualcosa collide con un nemico di diverso da altri nemici */
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             if(update.emitter == BULLET){
               if(isHit.emitter == ENEMY)     score += ENEMY_LV1_POINT;
@@ -274,6 +295,7 @@ int game(int pipeIN, int pipeOUT, borders border){
           break;
         case SPACECRAFT:
           if(update.emitter == BOMB){
+            /* Spacecraft colpita da una bomba */
             life--;
             beep();
             kill(update.PID, SIGKILL);
@@ -299,6 +321,10 @@ int game(int pipeIN, int pipeOUT, borders border){
       }
     }
     if(invincible) life = 3;
+
+
+    /* ------------------------------------------------------------ */
+    /* CONTROLLO FINE GIOCO                                         */
     if(life==0){
       /* Se la navicella è morta, avviso il processo enemies che è terminato */
       hitAction.hitting.emitter = SPACECRAFT;

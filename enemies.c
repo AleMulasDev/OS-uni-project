@@ -4,13 +4,21 @@ int SPACE_BETWEEN_X = 16;
 int SPACE_BETWEEN_Y = 8;
 
 /* ------------------------------------------------------------ */
+/* PROTOTIPI                                                    */
+/* ------------------------------------------------------------ */
+
 /* Funzione di utilità per calcolare il numero di nemici che ci */
 /* stanno nello schermo                                         */
 coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoint);
+
+/* Funzione per generare una direzione random                   */
 vettore generateRandomDirection();
 
+
+
 /* ------------------------------------------------------------ */
-/* Funzione principale                                          */
+/* FUNZIONE PRINCIPALE                                          */
+/* ------------------------------------------------------------ */
 void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordinate_base startingPoint){
   int i;
   int pipeToClose;
@@ -26,6 +34,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
   enemyPipes toChild;
   vettore direzione;
 
+  /* -------------- Inizializzo le pipes  -------------- */
   for(i=0; i<max_enemies; i++){
     enemies_pipes[i] = (int*)malloc(sizeof(int)*2);
     pipe(enemies_pipes[i]);
@@ -34,7 +43,8 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
     enemiesPipes[i].pipeOUT = pipeOUT;
     enemiesPipes[i].pipeIN = enemies_pipes[i][0];
   }
-  /* Spawno i nemici */
+
+  /* ----------------- Spawno i nemici ----------------- */
   int enemyCount = 0;
   coordinate_base offset_spawn = {0,0};
   while(enemyCount < max_enemies){
@@ -68,6 +78,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
     }
   }
 
+  /* ---------------- Comunico i messaggi tra il main e i singoli nemici ---------------- */
   while(enemyCount > 0){
     read(pipeIN, &update, sizeof(hitUpdate));
     if(update.hitting.x == -1 && update.hitting.emitter == SPACECRAFT){
@@ -96,6 +107,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
     }
   }
 
+   /* ------------- Chiusura del processo  ------------- */
   while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
 
   for(i=0; i<max_enemies; i++){
@@ -106,8 +118,11 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
 }
 
 
+
 /* ------------------------------------------------------------ */
-/* Funzioni di utilità                                          */
+/* FUNZIONI DI UTILITÀ                                          */
+/* ------------------------------------------------------------ */
+
 coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoint){
   coordinate_base numEnemies;
   borders.maxx = borders.maxx - startingPoint.x;

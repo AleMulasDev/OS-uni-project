@@ -1,6 +1,10 @@
 #include "bullet.h"
 #include <math.h>
 
+
+/* ------------------------------------------------------------ */
+/* FUNZIONE PRINCIPALE                                          */
+/* ------------------------------------------------------------ */
 void bullet(int pipeOUT, borders borders, vettore direzione, coordinate startingPoint){
   bool stop = false;
   int i=0;
@@ -22,6 +26,8 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
   }
   coords.prev_coordinate.x = coords.x;
   coords.prev_coordinate.y = coords.y;
+  
+  /* ---------------- Ciclo principale ---------------- */
   while(!stop){
     /* Aggiorno coordinate */
     if(i == changeAfter){

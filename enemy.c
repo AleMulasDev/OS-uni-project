@@ -1,5 +1,8 @@
 #include "enemy.h"
 
+
+/* ------------------------------------------------------------ */
+/* DEFINIZIONE COSTANTI                                         */
 int ENEMY_SPRITE_1_WIDTH=6;
 int ENEMY_SPRITE_2_WIDTH=3;
 int ENEMY_SPRITE_1_HEIGHT=6;
@@ -7,10 +10,14 @@ int ENEMY_SPRITE_2_HEIGHT=2;
 char* sprite1Enemy[] = {"      ", "<\\==\\ ","  /][\\","  \\][/","</==/ ","      "};
 char* sprite2Enemy[] = {"<\\\\","<//"};
 
-/* Prototipi funzioni di utilità */
-coordinate_base getOffset(int index);
-int getIndex(coordinate_base offset);
 
+/* ------------------------------------------------------------ */
+/* PROTOTIPI FUNZIONI DI UTILITÀ                                */
+coordinate_base getOffset(int index);
+
+
+/* ------------------------------------------------------------ */
+/* FUNZIONE PRINCIPALE                                          */
 void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base startingPoint){
   coordinate report;
   coordinate tmpReport;
@@ -39,6 +46,8 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   /* Mando un singolo update, anche se fuori dalla zona visibile, per registrare il nemico nelle hitbox */
   if(report.x > borders.maxx) write(pipe.pipeOUT, &report, sizeof(coordinate));
   
+  /* ---------------------------------------------------------------------------- */
+  /* -------------- Ciclo di attesa di essere nella zona visibile  -------------- */
   while(report.x >= borders.maxx - ENEMY_SPRITE_1_WIDTH){
     /* Controllo se arriva una richiesta di chiusura forzata e avanzo verso sinistra
       finché non arrivo alla zona visibile */
@@ -52,18 +61,23 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     report.x += direzione.x;
     napms(DELAY_MS*ENEMY_MOV_SPEED);
   }
+
+  /* --------------------------------------------------- */
+  /* ---------------- Ciclo principale  ---------------- */
   while(!stop){
     report.prev_coordinate.x = report.x;
     report.prev_coordinate.y = report.y;
     while(elapsed < DELAY_MS*ENEMY_MOV_SPEED){
       if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
       if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
+        /* Chiusura processo */
         close(pipe.pipeIN);
         close(pipe.pipeOUT);
         return;
       }
       switch(receivedUpdate.hitting.emitter){
         case SPACECRAFT:
+          /* Collisione con la spacecraft */
           report.x = -1;
           stop = true;
           close(pipe.pipeIN);
@@ -71,6 +85,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
           close(pipe.pipeOUT);
           return;
         case BULLET:
+          /* Collisione con un proiettile */
           if(level == 1){
             /* Cancello la nave di 1 livello */
             level++;
