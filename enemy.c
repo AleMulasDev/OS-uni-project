@@ -9,6 +9,7 @@ char* sprite2Enemy[] = {"<\\\\","<//"};
 
 /* Prototipi funzioni di utilità */
 coordinate_base getOffset(int index);
+int getIndex(coordinate_base offset);
 
 void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base startingPoint){
   coordinate report;
@@ -22,6 +23,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   int hitCount[4] = {0,0,0,0};
   int PID;
   int index;
+  int lastYBounce = 0;
   coordinate bombSpawnPoint;
   vettore bombDirection;
   report.PID = getpid();
@@ -93,7 +95,12 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
 
         case ENEMY_LV2:
         case ENEMY:
-          direzione.y = direzione.y * -1;
+          /* Salvo la Y del rimbalzo per impedire di cambiare 2 volte la pozione */
+          /* Cosa che può succedere con 2 navicelle lv 2 affiancate              */
+          if(lastYBounce != report.y){
+            direzione.y = direzione.y * -1;
+            lastYBounce = report.y;
+          }
           break;
         }
       }
