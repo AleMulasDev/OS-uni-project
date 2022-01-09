@@ -79,7 +79,6 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       for(i=0; i<max_enemies; i++){
         if(enemiesPipes[i].PID_child != -1) write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
       }
-      break;
     }else{
       /* Controllo se è un update di eliminazione nave di primo livello */
       if(update.beingHit.x == -1 && update.beingHit.emitter == ENEMY){

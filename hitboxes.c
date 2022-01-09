@@ -5,7 +5,7 @@ int dimHistory;
 
 void initializeHistory(int numEnemies){
     /* Salvo la posizione di tutti i nemici (*4 per il secondo livello) + della navicella */
-    dimHistory = (numEnemies*4)+1;
+    dimHistory = (numEnemies*5)+1;
     lastRecorded = (coordinate*)malloc(sizeof(coordinate)*dimHistory);
     int i;
     for(i=0; i<dimHistory;i++){
@@ -20,13 +20,27 @@ void updatePosition(coordinate newItem){
   if(newItem.emitter==BULLET || newItem.emitter==BOMB) return;
   for(i=0; i<dimHistory; i++){
     if(lastRecorded[i].PID == newItem.PID){
-      if (newItem.x == -1){
-        /* Oggetto da eliminare */
+      if (newItem.x == -1 && newItem.emitter == ENEMY && lastRecorded[i].emitter == ENEMY){
+        /* Enemy lv 1 da eliminare */
         lastRecorded[i].PID = -1;
+        return;
       }else{
-        lastRecorded[i] = newItem;
+        if(newItem.x == -1 && newItem.emitter == ENEMY_LV2){
+          /* Enemy lv 2 da eliminare */
+          if(newItem.prev_coordinate.x == lastRecorded[i].x && newItem.prev_coordinate.y == lastRecorded[i].y){
+            /* Le coordinate corrispondono, è l'enemy lv2 giusto da eliminare */
+            lastRecorded[i].PID = -1;
+            return;
+          }
+        }else{
+          /* Update generico di posizione                                                                      */
+          /* Verifico che sia un update dell'oggetto corretto (gli enemy lv2 sono 4x entità con lo stesso pid) */
+          if(lastRecorded[i].x == newItem.prev_coordinate.x && lastRecorded[i].y == newItem.prev_coordinate.y){
+            lastRecorded[i] = newItem;
+            return;
+          }
+        }
       }
-      return;
     }
   }
   /* Se arrivo qua allora non è ancora presente nell'array */
@@ -82,7 +96,7 @@ coordinate_base getHitBox(coordinate item){
       break;
     case BOMB:
     case BULLET:
-      toReturn.x = toReturn.y = 1;
+      toReturn.x = toReturn.y = 0;
       break;
     case SPACECRAFT:
       toReturn.x = SPACECRAFT_SPRITE_WIDTH;
@@ -100,7 +114,7 @@ coordinate_base getHitBox(coordinate item){
 bool areThereEnemies(){
   int i;
   for(i=0; i<dimHistory; i++){
-    if(lastRecorded[i].PID != -1 && lastRecorded[i].emitter == ENEMY) return true;
+    if(lastRecorded[i].PID != -1 && (lastRecorded[i].emitter == ENEMY || lastRecorded[i].emitter == ENEMY_LV2)) return true;
   }
   return false;
 }

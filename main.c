@@ -247,7 +247,7 @@ int game(int pipeIN, int pipeOUT, borders border){
       switch (isHit.emitter) {
         case ENEMY_LV2:
         case ENEMY:
-          if(update.emitter == ENEMY){
+          if(update.emitter == ENEMY || update.emitter == ENEMY_LV2){
             /* Collisione tra 2 nemici, avviso entrambi per farli rimbalzare */
             write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             hitAction.beingHit = update;
@@ -277,7 +277,7 @@ int game(int pipeIN, int pipeOUT, borders border){
               write(pipeOUT, &hitAction ,sizeof(hitUpdate));
             }
           }else{
-            if(update.emitter == ENEMY){
+            if(update.emitter == ENEMY || update.emitter == ENEMY_LV2){
               /* Forzo la chiusura dei nemici perché uno collide con la navicella madre */
               life=0;
               beep();
@@ -296,7 +296,7 @@ int game(int pipeIN, int pipeOUT, borders border){
       hitAction.hitting.x = -1;
       write(pipeOUT, &hitAction ,sizeof(hitUpdate));
     }
-    if(update.x == -1 && update.emitter == ENEMY){
+    if(update.x == -1 && update.emitter == ENEMY_LV2){
       /* Un nemico è morto, controllo gli altri */
       if(areThereEnemies() == false){
         return 1; /* Vittoria */
