@@ -25,7 +25,7 @@
 
 char projectile = 'O';
 int score = 0;
-bool invincible = true;
+bool invincible = false;
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
