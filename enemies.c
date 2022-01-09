@@ -1,6 +1,6 @@
 #include "enemies.h"
 
-int SPACE_BETWEEN_X = 8;
+int SPACE_BETWEEN_X = 16;
 int SPACE_BETWEEN_Y = 8;
 
 /* ------------------------------------------------------------ */
