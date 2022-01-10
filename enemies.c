@@ -9,7 +9,7 @@ int SPACE_BETWEEN_Y = 8;
 
 /* Funzione di utilità per calcolare il numero di nemici che ci */
 /* stanno nello schermo                                         */
-coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoint);
+coordinate_base calculateNumEnemies(borders border, coordinate_base startingPoint);
 
 /* Funzione per generare una direzione random                   */
 vettore generateRandomDirection();
@@ -19,14 +19,18 @@ vettore generateRandomDirection();
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
 /* ------------------------------------------------------------ */
-void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordinate_base startingPoint){
+void *enemies(void *args){
+  enemiesArguments enArgs = *((enemiesArguments*)args);
+  int max_enemies = enArgs.max_enemies;
+  borders border = enArgs.border;
+  coordinate_base startingPoint = enArgs.startingPoint;
   int i;
   int pipeToClose;
   int pid;
 
   int** enemies_pipes = (int**)malloc(sizeof(int*)*max_enemies);
   enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);
-  coordinate_base numEnemies = calculateNumEnemies(borders, startingPoint);
+  coordinate_base numEnemies = calculateNumEnemies(border, startingPoint);
 
   vettore randDirection = generateRandomDirection();
 
@@ -62,7 +66,7 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
       free(enemies_pipes);
       free(enemiesPipes);
       coordinate_base startingEnemyPoint = {startingPoint.x + offset_spawn.x, startingPoint.y + offset_spawn.y};
-      enemy(toChild, borders, direzione, startingEnemyPoint);
+      enemy(toChild, border, direzione, startingEnemyPoint);
       return;
     }else{
       enemiesPipes[enemyCount].PID_child = pid; /* Salvo il PID del processo figlio */
@@ -123,12 +127,12 @@ void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordina
 /* FUNZIONI DI UTILITÀ                                          */
 /* ------------------------------------------------------------ */
 
-coordinate_base calculateNumEnemies(borders borders, coordinate_base startingPoint){
+coordinate_base calculateNumEnemies(borders border, coordinate_base startingPoint){
   coordinate_base numEnemies;
-  borders.maxx = borders.maxx - startingPoint.x;
-  borders.maxy = borders.maxy - startingPoint.y;
-  numEnemies.x = (borders.maxx) / (ENEMY_SPRITE_1_WIDTH + SPACE_BETWEEN_X);
-  numEnemies.y = (borders.maxy) / (ENEMY_SPRITE_1_HEIGHT + SPACE_BETWEEN_Y);
+  border.maxx = border.maxx - startingPoint.x;
+  border.maxy = border.maxy - startingPoint.y;
+  numEnemies.x = (border.maxx) / (ENEMY_SPRITE_1_WIDTH + SPACE_BETWEEN_X);
+  numEnemies.y = (border.maxy) / (ENEMY_SPRITE_1_HEIGHT + SPACE_BETWEEN_Y);
   return numEnemies;
 }
 

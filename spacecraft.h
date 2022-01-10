@@ -15,6 +15,6 @@ extern char* spriteSpacecraft[];
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-void spacecraft(int pipeIN, int pipeOUT, borders borders);
+void *spacecraft(void *args);
 
 #endif

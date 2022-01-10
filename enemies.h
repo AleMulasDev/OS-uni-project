@@ -16,6 +16,6 @@ extern int SPACE_BETWEEN_Y;
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-void enemies(int pipeIN, int pipeOUT, borders borders, int max_enemies, coordinate_base startingPoint);
+void *enemies(void *args);
 
 #endif

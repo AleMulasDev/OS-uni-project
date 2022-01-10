@@ -12,6 +12,9 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 #include <time.h>
+#include <pthread.h>
+#include <semaphore.h>
+#include "utils_thread.h"
 
 /* ------------------------------------------------------------ */
 /* Costanti comuni a più file                                   */
@@ -31,6 +34,21 @@ typedef enum {
 }emitter_type;
 
 /* ------------------------------------------------------------ */
+/* Thread arguments                                             */
+
+typedef struct {
+  borders border;
+  int max_enemies;
+  coordinate_base startingPoint;
+} enemiesArguments;
+
+typedef struct {
+  borders border;
+  vettore direzione;
+  coordinate_base startingPoint;
+} enemyArguments;
+
+/* ------------------------------------------------------------ */
 /* Gestione coordinate                                          */
 
 typedef struct {
@@ -39,7 +57,7 @@ typedef struct {
 } coordinate_base;
 
 typedef struct {
-  int PID;
+  pthread_t threadID;
   int x;
   int y;
   coordinate_base prev_coordinate;

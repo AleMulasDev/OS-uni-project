@@ -30,9 +30,10 @@ bool invincible = false;
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-int game(int pipeIN, int pipeOUT, borders borders);
+int game(borders borders);
 /*
   Intero ritornato da game:
+  -2: errore nella creazione del thread
   -1: utente ha premuto Q per chiudere il gioco
   0 : sconfitta
   1 : vittoria
@@ -49,15 +50,24 @@ int main(){
   srand(time(NULL));
   initializeHistory(MAX_ENEMIES);
 
-  int position_pipe[2];          /* Pipe processi -> main       */
-  int hit_pipe[2];               /* Pipe main -> processi       */
-  int PIDSpacecraft;             /* PID del processo Spacecraft */
-  int PIDenemies;                /* PID del processo enemies    */
-  int gameEndingReason;          /* Risultato della partita     */
+  /* Inizializzazioni buffer       */
+  position_buffer = (coordinate*)malloc(sizeof(coordinate)*BUFFER_SIZE);
+  hit_buffer = (hitUpdate*)malloc(sizeof(hitUpdate)*BUFFER_SIZE);
 
-  /* Inizializzazione pipe         */
-  pipe(position_pipe);
-  pipe(hit_pipe);
+  /* Dichiarazioni variabili       */
+  pthread_t TIDSpacecraft;       /* Thread ID del processo Spacecraft */
+  pthread_t TIDenemies;          /* Thread ID del processo enemies    */
+  int gameEndingReason;          /* Risultato della partita           */
+
+  /* Inizializzazioni mutex        */
+  pthread_mutex_init(&positionMutex, NULL);
+  pthread_mutex_init(&hitMutex, NULL);
+
+  /* Inizializzazioni semafori     */
+  sem_init(&semPosBuffer, 0, 0);
+  sem_init(&semHitBufferFull, 0, BUFFER_SIZE);
+  sem_init(&semPosBufferFull, 0, BUFFER_SIZE);
+  sem_init(&semHitBuffer, 0, 0);
 
   /* Inizializzazione ncurses      */
   initscr();
@@ -95,40 +105,37 @@ int main(){
   init_pair(BOMB_COLOR, COLOR_YELLOW, COLOR_RED);
   bkgd(COLOR_PAIR(BKGD_COLOR));
 
-   /* --------------- CREAZIONE PROCESSI --------------- */
-  PIDSpacecraft = fork();
-  if(PIDSpacecraft == 0){
-    /* ------ spacecraft  ------ */
-    close(position_pipe[0]);         /* Chiusura della lettura   */
-    close(hit_pipe[1]);              /* Chiusura della scrittura */
-    spacecraft(hit_pipe[0], position_pipe[1], border);
-  }else{
-    /* -------- enemies -------- */
-    PIDenemies = fork();
-    if(PIDenemies == 0){
-      close(position_pipe[0]);         /* Chiusura della lettura   */
-      close(hit_pipe[1]);              /* Chiusura della scrittura */
-      coordinate_base startingPoint;
-      startingPoint.y = 1; /* 1 per il bordo che è a y=0 */
-      startingPoint.x = border.maxx - (border.maxx/4);
-      enemies(hit_pipe[0], position_pipe[1], border, MAX_ENEMIES, startingPoint);
-    }else{
-      /* ---- game function ---- */
-      close(position_pipe[1]);         /* Chiusura della scrittura */
-      close(hit_pipe[0]);              /* Chiusura della lettura   */
-      gameEndingReason = game(position_pipe[0], hit_pipe[1], border);
-      kill(PIDSpacecraft, SIGKILL);
-      endgame(border, gameEndingReason);
-      while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
-      endwin();
-    }
-  } 
+  /* ---------------- CREAZIONE THREAD ---------------- */
+  
+  /* Creazione thread Spacecraft */
+  if(pthread_create(&TIDSpacecraft, NULL, spacecraft, (void*)&border)){
+    endgame(border, -2);
+    return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
+  }
+  
+  /* Creazione thread enemies */
+  enemiesArguments enemiesArg;
+  enemiesArg.border = border;
+  enemiesArg.max_enemies = MAX_ENEMIES;
+  enemiesArg.startingPoint.y = 1;
+  enemiesArg.startingPoint.x = border.maxx - (border.maxx/4);
+  if(pthread_create(&TIDenemies, NULL, enemies, (void*)&enemiesArg)){
+    endgame(border, -2);
+    return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
+  }
+
+  gameEndingReason = game(border);
+  pthread_join(TIDSpacecraft, NULL);
+  pthread_join(TIDenemies, NULL);
+  pthread_mutex_destroy(&positionMutex);
+  pthread_mutex_destroy(&hitMutex);
+  return;
 }
 
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE DEL GIOCO                                */
 /* ------------------------------------------------------------ */
-int game(int pipeIN, int pipeOUT, borders border){
+int game(borders border){
 
   /* ------------- Dichiarazioni variabili ------------- */
   borders realBorder;
@@ -159,7 +166,11 @@ int game(int pipeIN, int pipeOUT, borders border){
   /* ------------ CICLO DI GIOCO PRINCIPALE ------------ */
   /* --------------------------------------------------- */
   while(life > 0){
-    read(pipeIN, &update, sizeof(coordinate));
+    sem_wait(&semPosBuffer);
+    pthread_mutex_lock(&positionMutex);
+    update = position_buffer[index_posBuffer];
+    index_posBuffer--;
+    pthread_mutex_unlock(&positionMutex);
 
     /* ---------- STAMPA DEGLI AGGIORNAMENTI  ---------- */
     switch(update.emitter){
@@ -168,7 +179,7 @@ int game(int pipeIN, int pipeOUT, borders border){
         if(update.x == -1){
           /* Se coordinata x = -1 allora il processo Spacecraft è terminato */
           hitAction.hitting = update;
-          write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+          addHit(hitAction);
           return -1;
         }
         
@@ -208,7 +219,7 @@ int game(int pipeIN, int pipeOUT, borders border){
           hitAction.beingHit = update;
           lv1Killed++;
           /* Avviso il processo enemies che uno dei suoi figli è aumentato di livello */
-          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
+          addHit(hitAction);
           break;
         } 
 
@@ -232,7 +243,7 @@ int game(int pipeIN, int pipeOUT, borders border){
           hitAction.beingHit = update;
           lv2Killed++;
           /* Avviso il processo enemies che una nave di secondo livello è morta */
-          write(pipeOUT, &hitAction ,sizeof(hitUpdate)); 
+          addHit(hitAction);
           break;
         } 
 
@@ -268,7 +279,7 @@ int game(int pipeIN, int pipeOUT, borders border){
     /* ------------------------------------------------------------ */
     /* Controllo HITBOX                                             */
     isHit = checkHitBox(update);
-    if(isHit.PID != -1){
+    if(isHit.threadID != -1){
       /* Se PID diverso da -1 ho una hit */
       hitAction.beingHit = isHit;
       hitAction.hitting = update;
@@ -277,13 +288,13 @@ int game(int pipeIN, int pipeOUT, borders border){
         case ENEMY:
           if(update.emitter == ENEMY || update.emitter == ENEMY_LV2){
             /* Collisione tra 2 nemici, avviso entrambi per farli rimbalzare */
-            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            addHit(hitAction);
             hitAction.beingHit = update;
             hitAction.hitting = isHit;
-            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            addHit(hitAction);
           }else{
             /* Qualcosa collide con un nemico di diverso da altri nemici */
-            write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+            addHit(hitAction);
             if(update.emitter == BULLET){
               if(isHit.emitter == ENEMY)     score += ENEMY_LV1_POINT;
               if(isHit.emitter == ENEMY_LV2) score += ENEMY_LV2_POINT;
@@ -305,7 +316,7 @@ int game(int pipeIN, int pipeOUT, borders border){
               hitAction.hitting.emitter = SPACECRAFT;
               hitAction.hitting.x = -1;
               attron(COLOR_PAIR(DELETE_COLOR));
-              write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+              addHit(hitAction);
             }
           }else{
             if(update.emitter == ENEMY || update.emitter == ENEMY_LV2){
@@ -315,7 +326,7 @@ int game(int pipeIN, int pipeOUT, borders border){
               hitAction.hitting = isHit;
               hitAction.beingHit = update;
               hitAction.hitting.x = -1;
-              write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+              addHit(hitAction);
             }
           }
       }
@@ -329,7 +340,7 @@ int game(int pipeIN, int pipeOUT, borders border){
       /* Se la navicella è morta, avviso il processo enemies che è terminato */
       hitAction.hitting.emitter = SPACECRAFT;
       hitAction.hitting.x = -1;
-      write(pipeOUT, &hitAction ,sizeof(hitUpdate));
+      addHit(hitAction);
     }
     if(update.x == -1 && update.emitter == ENEMY_LV2){
       /* Un nemico è morto, controllo gli altri */
@@ -370,6 +381,8 @@ void endgame(borders border, int gameEndingReason){
   if(gameEndingReason == -1) return;
   int i;
   int j;
+  char error[] = "Si è creato un errore critico";
+  int errorLength = strlen(error);
   char pushToCloseString[] = "Premere un tasto per chiudere...";
   int pushToCloseStringLength = strlen(pushToCloseString);
   char scoreObtainedString[] = "Punteggio ottenuto: %d";
@@ -389,6 +402,9 @@ void endgame(borders border, int gameEndingReason){
     }
   }
 
+  if(gameEndingReason == -1){
+    mvprintw((border.maxy/2)-2, (border.maxx/2)-errorLength, error);
+  }
   if(gameEndingReason == 0){
     /* Sconfitta */
     mvprintw((border.maxy/2)-2, (border.maxx/2)-(youLostLength/2), youLost);

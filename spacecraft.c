@@ -13,7 +13,9 @@ float fireRate = 0.15;
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
 /* ------------------------------------------------------------ */
-void spacecraft(int pipeIN, int pipeOUT, borders borders){
+// void *spacecraft(int pipeIN, int pipeOUT, border border){
+void *spacecraft(void *args){
+  borders border = *((borders*) args);
   bool quit = false;
   int pid;
   timeout(0);
@@ -23,8 +25,8 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
   coordinate coords;
   coords.emitter=SPACECRAFT;
   coords.x = 1;
-  coords.y = borders.maxy/2;
-  coords.PID = getpid();
+  coords.y = border.maxy/2;
+  coords.threadID = pthread_self();
   coords.prev_coordinate.x = coords.x;
   coords.prev_coordinate.y = coords.y;
 
@@ -39,7 +41,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
         }
         break;
       case KEY_DOWN:
-        if(coords.y<borders.maxy-SPACECRAFT_SPRITE_HEIGHT-2){  /* Se non sono già in fondo */
+        if(coords.y<border.maxy-SPACECRAFT_SPRITE_HEIGHT-2){  /* Se non sono già in fondo */
           coords.y+=2;
         }
         break;
@@ -52,7 +54,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
             coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
             coords.prev_coordinate.x = coords.x;
             coords.emitter = BULLET;
-            bullet(pipeOUT, borders, RIGHT_UP, coords);
+            bullet(pipeOUT, border, RIGHT_UP, coords);
             return;
           }else{
             pid = fork();
@@ -61,7 +63,7 @@ void spacecraft(int pipeIN, int pipeOUT, borders borders){
               coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
               coords.prev_coordinate.x = coords.x;
               coords.emitter = BULLET;
-              bullet(pipeOUT, borders, RIGHT_DOWN, coords);
+              bullet(pipeOUT, border, RIGHT_DOWN, coords);
               return;
             }
           }

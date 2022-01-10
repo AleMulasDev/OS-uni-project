@@ -1,5 +1,5 @@
 game: main.c spacecraft.o enemies.o hitboxes.o utils_struct.o
-	gcc -o game main.c hitboxes.o spacecraft.o enemies.o enemy.o bullet.o utils_struct.o -lncurses -std=c90 -lm
+	gcc -o game main.c hitboxes.o spacecraft.o enemies.o enemy.o bullet.o utils_struct.o -lncurses -std=c90 -lm -lpthread
 
 hitboxes.o: hitboxes.c hitboxes.h spacecraft.o enemy.o utils_struct.o
 	gcc -c -o hitboxes.o hitboxes.c
@@ -16,8 +16,11 @@ enemy.o: enemy.c enemy.h utils_struct.o
 bullet.o: bullet.c bullet.h utils_struct.o
 	gcc -c -o bullet.o bullet.c
 
-utils_struct.o: utils_struct.c utils_struct.h
+utils_struct.o: utils_struct.c utils_struct.h utils_thread.o
 	gcc -c -o utils_struct.o utils_struct.c
+
+utils_thread.o: utils_thread.c utils_thread.h
+	gcc -c -o utils_thread.o utils_thread.c
 
 clean:
 	rm *.o
