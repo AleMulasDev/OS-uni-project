@@ -1,7 +1,7 @@
 #ifndef SPACECRAFT_H
 #define SPACECRAFT_H
 
-#include "utils_struct.h"
+#include "utils_thread.h"
 #include "bullet.h"
 
 /* ------------------------------------------------------------ */

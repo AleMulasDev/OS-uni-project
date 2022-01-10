@@ -1,11 +1,11 @@
 #ifndef BULLET_H
 #define BULLET_H
 
-#include "utils_struct.h"
+#include "utils_thread.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-void bullet(int pipeOUT, borders borders, vettore direzione, coordinate startingPoint);
+void *bullet(void* args);
 
 #endif

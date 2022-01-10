@@ -20,6 +20,8 @@ void *spacecraft(void *args){
   int pid;
   timeout(0);
   float elapsedTime = 0;
+  bulletArguments bulletArgs;
+  pthread_t bombThreadID;
 
   /* ------------ Inizializzo le coordinate ------------ */
   coordinate coords;
@@ -54,8 +56,13 @@ void *spacecraft(void *args){
             coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
             coords.prev_coordinate.x = coords.x;
             coords.emitter = BULLET;
-            bullet(pipeOUT, border, RIGHT_UP, coords);
-            return;
+            bulletArgs.border = border;
+            bulletArgs.direzione = RIGHT_UP;
+            bulletArgs.startingPoint = coords;
+            if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+              return NULL;
+            }
+            return NULL;
           }else{
             pid = fork();
             if(pid == 0){
@@ -63,8 +70,12 @@ void *spacecraft(void *args){
               coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
               coords.prev_coordinate.x = coords.x;
               coords.emitter = BULLET;
-              bullet(pipeOUT, border, RIGHT_DOWN, coords);
-              return;
+              bulletArgs.border = border;
+              bulletArgs.direzione = RIGHT_UP;
+              bulletArgs.startingPoint = coords;
+              if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+                return NULL;
+              }
             }
           }
         }
@@ -79,7 +90,7 @@ void *spacecraft(void *args){
       elapsedTime += DELAY_MS;
     }
 
-    write(pipeOUT, &coords, sizeof(coordinate));
+    addUpdate(coords);
     coords.prev_coordinate.y = coords.y;
     napms(DELAY_MS);
   }

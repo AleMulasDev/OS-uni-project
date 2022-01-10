@@ -1,13 +1,12 @@
 #ifndef ENEMIES_H
 #define ENEMIES_H
 
-#include "utils_struct.h"
+#include "utils_thread.h"
 #include "enemy.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
 
-#define MAX_ENEMIES 20
 extern int SPACE_BETWEEN_X;
 extern int SPACE_BETWEEN_Y;
 

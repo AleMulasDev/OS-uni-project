@@ -1,8 +1,8 @@
 #ifndef ENEMY_H
 #define ENEMY_H
 
-#include "utils_struct.h"
 #include "bullet.h"
+#include "utils_thread.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE COSTANTI                                         */
@@ -21,6 +21,6 @@ extern char* sprite2Enemy[];
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base startingPoint);
+void *enemy(void* args);
 
 #endif

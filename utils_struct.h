@@ -14,13 +14,13 @@
 #include <time.h>
 #include <pthread.h>
 #include <semaphore.h>
-#include "utils_thread.h"
 
 /* ------------------------------------------------------------ */
 /* Costanti comuni a più file                                   */
 
-#define DELAY_MS 33        /* tempo di attesa in millisecondi                                                */
+#define DELAY_MS 33        /* tempo di attesa in millisecondi */
 #define DEFAULT_SPEED 0.06 /* velocità di default del vettore */
+#define MAX_ENEMIES 20     /* massimo numero di nemici        */
 
 /* ------------------------------------------------------------ */
 /* Enumerazione per riconoscere l'emettitore delle coordinate   */
@@ -32,21 +32,6 @@ typedef enum {
   BULLET,
   BOMB
 }emitter_type;
-
-/* ------------------------------------------------------------ */
-/* Thread arguments                                             */
-
-typedef struct {
-  borders border;
-  int max_enemies;
-  coordinate_base startingPoint;
-} enemiesArguments;
-
-typedef struct {
-  borders border;
-  vettore direzione;
-  coordinate_base startingPoint;
-} enemyArguments;
 
 /* ------------------------------------------------------------ */
 /* Gestione coordinate                                          */
@@ -84,9 +69,33 @@ extern vettore RIGHT_UP;
 extern vettore RIGHT_DOWN;
 
 typedef struct {
-  int pipeIN;
-  int pipeOUT;
-  int PID_child;
-} enemyPipes;
+  pthread_mutex_t mutex;
+  sem_t semaphore;
+  sem_t semaphoreFull;
+  pthread_t threadID_Child;
+  int enemyNumber;
+} enemyThread;
+
+/* ------------------------------------------------------------ */
+/* Thread arguments                                             */
+
+typedef struct {
+  borders border;
+  int max_enemies;
+  coordinate_base startingPoint;
+} enemiesArguments;
+
+typedef struct {
+  borders border;
+  vettore direzione;
+  coordinate_base startingPoint;
+  enemyThread self;
+} enemyArguments;
+
+typedef struct {
+  borders border;
+  vettore direzione;
+  coordinate startingPoint;
+} bulletArguments;
 
 #endif

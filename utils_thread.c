@@ -1,5 +1,10 @@
 #include "utils_thread.h"
 
+int index_hitBuffer = 0;
+int presenti_hitBuffer = 0;
+int index_posBuffer = 0;
+int presenti_posBuffer = 0;
+
 void addHit(hitUpdate hitAction){
   pthread_mutex_lock(&hitMutex); /* HITMUTEX LOCK */
 
@@ -56,4 +61,48 @@ coordinate getUpdate(){
   sem_post(&semPosBufferFull);
   pthread_mutex_unlock(&positionMutex); /* positionMutex UNLOCK */
   return update;
+}
+
+void addEnemyUpdate(hitUpdate hitAction, enemyThread enemyThread){
+  int semValue;
+  pthread_mutex_lock(&(enemyThread.mutex)); /* enemyThread.mutex LOCK */
+  if(sem_getvalue(&(enemyThread.semaphore), &semValue) == ENEMY_BUFFER_SIZE){
+    /* Buffer pieno, uso il semaforo per attendere che si liberi spazio */
+    pthread_mutex_unlock(&(enemyThread.mutex)); /* enemyThread.mutex UNLOCK */
+    sem_wait(&(enemyThread.semaphoreFull));
+    pthread_mutex_lock(&(enemyThread.mutex)); /* enemyThread.mutex LOCK */
+  }
+
+  /* Buffer non pieno */
+  enemiesBuffer[(enemyThread.enemyNumber*ENEMY_BUFFER_SIZE)+semValue] = hitAction;
+  sem_post(&(enemyThread.semaphore));
+
+  pthread_mutex_unlock(&(enemyThread.mutex)); /* enemyThread.mutex UNLOCK */
+  return;
+}
+
+hitUpdate getEnemyUpdate(enemyThread enemyThread){
+  int semValue;
+  sem_wait(&(enemyThread.semaphore));
+  pthread_mutex_lock(&(enemyThread.mutex)); /* enemyThread.mutex LOCK */
+  sem_getvalue(&(enemyThread.semaphore), &semValue);
+  hitUpdate hitAction = enemiesBuffer[(enemyThread.enemyNumber*ENEMY_BUFFER_SIZE)+semValue];
+  sem_post(&(enemyThread.semaphoreFull));
+  pthread_mutex_unlock(&(enemyThread.mutex)); /* enemyThread.mutex UNLOCK */
+  return hitAction;
+}
+
+hitUpdate getEnemyUpdateNB(enemyThread enemyThread){
+  int semValue;
+  hitUpdate hitAction;
+  if(sem_trywait(&(enemyThread.semaphore)) > 0){
+    pthread_mutex_lock(&(enemyThread.mutex)); /* enemyThread.mutex LOCK */
+    sem_getvalue(&(enemyThread.semaphore), &semValue);
+    hitAction = enemiesBuffer[(enemyThread.enemyNumber*ENEMY_BUFFER_SIZE)+semValue];
+    sem_post(&(enemyThread.semaphoreFull));
+    pthread_mutex_unlock(&(enemyThread.mutex)); /* enemyThread.mutex UNLOCK */
+    return hitAction;
+  }
+  hitAction.hitting.x = -2;
+  return hitAction;
 }

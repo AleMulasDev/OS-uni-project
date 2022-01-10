@@ -18,23 +18,30 @@ coordinate_base getOffset(int index);
 
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
-void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base startingPoint){
+void *enemy(void* args){
+  enemyArguments enemyArgs = *((enemyArguments*) args);
+  borders border = enemyArgs.border;
+  coordinate_base startingPoint = enemyArgs.startingPoint;
+  vettore direzione = enemyArgs.direzione;
+  enemyThread self = enemyArgs.self;
+  self.threadID_Child = pthread_self();
   coordinate report;
   coordinate tmpReport;
   hitUpdate receivedUpdate;
   coordinate_base offset;
+  bulletArguments bulletArgs;
   int elapsed = 0;
   bool firstBombSpawned = false;
   int bombElapsed = 0;
   int toWait = 0;
   int level = 1;
+  pthread_t bombThreadID;
   int hitCount[4] = {0,0,0,0};
-  int PID;
   int index;
   int lastYBounce = 0;
   coordinate bombSpawnPoint;
   vettore bombDirection;
-  report.PID = getpid();
+  report.threadID = pthread_self();
   report.emitter = ENEMY;
   report.prev_coordinate.x = startingPoint.x;
   report.prev_coordinate.y = startingPoint.y;
@@ -44,18 +51,17 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
   srand(getpid());
 
   /* Mando un singolo update, anche se fuori dalla zona visibile, per registrare il nemico nelle hitbox */
-  if(report.x > borders.maxx) write(pipe.pipeOUT, &report, sizeof(coordinate));
+  if(report.x > border.maxx) addUpdate(report);
   
   /* ---------------------------------------------------------------------------- */
   /* -------------- Ciclo di attesa di essere nella zona visibile  -------------- */
-  while(report.x >= borders.maxx - ENEMY_SPRITE_1_WIDTH){
+  while(report.x >= border.maxx - ENEMY_SPRITE_1_WIDTH){
     /* Controllo se arriva una richiesta di chiusura forzata e avanzo verso sinistra
       finché non arrivo alla zona visibile */
-    if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
+    receivedUpdate = getEnemyUpdateNB(self);
+    if(receivedUpdate.hitting.x != -2){
       if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
-        close(pipe.pipeIN);
-        close(pipe.pipeOUT);
-        return;
+        return NULL;
       }
     }
     report.x += direzione.x;
@@ -68,29 +74,25 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     report.prev_coordinate.x = report.x;
     report.prev_coordinate.y = report.y;
     while(elapsed < DELAY_MS*ENEMY_MOV_SPEED){
-      if(read(pipe.pipeIN, &receivedUpdate, sizeof(hitUpdate)) > 0){
+      receivedUpdate = getEnemyUpdateNB(self);
+      if(receivedUpdate.hitting.x != -2){
       if(receivedUpdate.hitting.x == -1 && receivedUpdate.hitting.emitter == SPACECRAFT){
-        /* Chiusura processo */
-        close(pipe.pipeIN);
-        close(pipe.pipeOUT);
-        return;
+        return NULL;
       }
       switch(receivedUpdate.hitting.emitter){
         case SPACECRAFT:
           /* Collisione con la spacecraft */
           report.x = -1;
           stop = true;
-          close(pipe.pipeIN);
-          write(pipe.pipeOUT, &report, sizeof(coordinate));
-          close(pipe.pipeOUT);
-          return;
+          addUpdate(report);
+          return NULL;
         case BULLET:
           /* Collisione con un proiettile */
           if(level == 1){
             /* Cancello la nave di 1 livello */
             level++;
             report.x = -1;
-            write(pipe.pipeOUT, &report, sizeof(coordinate));
+            addUpdate(report);
             /* Riporto la coordinata all'originale per i nemici di secondo livello */
             report.x = report.prev_coordinate.x;
             report.emitter = ENEMY_LV2;
@@ -110,7 +112,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
               offset = getOffset(index);
               tmpReport.prev_coordinate.x += offset.x;
               tmpReport.prev_coordinate.y += offset.y;
-              write(pipe.pipeOUT, &tmpReport, sizeof(coordinate));
+              addUpdate(report);
             }
             /* Controllo se sono rimasti nemici in vita */
             stop = true;
@@ -120,8 +122,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
               }
             }
             if(stop){
-              close(pipe.pipeOUT);
-              return;
+              return NULL;
             }
           }
           break;
@@ -152,25 +153,28 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     if(rand() % 100 < BOMB_SPAWN_CHANCE*100 && !firstBombSpawned){
       firstBombSpawned = true;
       bombElapsed = 0;
-      PID = fork();
-      if(PID == 0){
-        bombSpawnPoint = report;
-        bombSpawnPoint.emitter = BOMB;
-        bombSpawnPoint.x--;
-        if(level == 2){
-          for(index=0;index<4;index++){
-            if(hitCount[index] < N_HIT_LV2_ENEMY){
-              bombSpawnPoint.x += getOffset(index).x;
-              bombSpawnPoint.y += getOffset(index).y;
-              break;
-            }
+
+      bombSpawnPoint = report;
+      bombSpawnPoint.emitter = BOMB;
+      bombSpawnPoint.x--;
+      if(level == 2){
+        for(index=0;index<4;index++){
+          if(hitCount[index] < N_HIT_LV2_ENEMY){
+            bombSpawnPoint.x += getOffset(index).x;
+            bombSpawnPoint.y += getOffset(index).y;
+            break;
           }
         }
-        bombDirection = RIGHT_UP;
-        bombDirection.y = 0;
-        bombDirection.x = bombDirection.x * -1;
-        bullet(pipe.pipeOUT, borders, bombDirection, bombSpawnPoint);
-        return;
+      }
+      bombDirection = RIGHT_UP;
+      bombDirection.y = 0;
+      bombDirection.x = bombDirection.x * -1;
+
+      bulletArgs.border = border;
+      bulletArgs.direzione = bombDirection;
+      bulletArgs.startingPoint = bombSpawnPoint;
+      if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+        return NULL;
       }
     }
 
@@ -178,20 +182,21 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
       bombElapsed += (DELAY_MS*ENEMY_MOV_SPEED);
     }else if(firstBombSpawned && bombElapsed >= BOMB_SPAWN_DELAY){
       bombElapsed = 0;
-      PID = fork();
-      if(PID == 0){
-        bombSpawnPoint = report;
-        bombSpawnPoint.emitter = BOMB;
-        bombSpawnPoint.x--;
-        bombDirection = RIGHT_UP;
-        bombDirection.y = 0;
-        bombDirection.x = bombDirection.x * -1;
-        bullet(pipe.pipeOUT, borders, bombDirection, bombSpawnPoint);
-        return;
+      bombSpawnPoint = report;
+      bombSpawnPoint.emitter = BOMB;
+      bombSpawnPoint.x--;
+      bombDirection = RIGHT_UP;
+      bombDirection.y = 0;
+      bombDirection.x = bombDirection.x * -1;
+      bulletArgs.border = border;
+      bulletArgs.direzione = bombDirection;
+      bulletArgs.startingPoint = bombSpawnPoint;
+      if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+        return NULL;
       }
     }
     
-    if(report.y + direzione.y < 2 || report.y + direzione.y > borders.maxy - ENEMY_SPRITE_1_HEIGHT){
+    if(report.y + direzione.y < 2 || report.y + direzione.y > border.maxy - ENEMY_SPRITE_1_HEIGHT){
       direzione.y = direzione.y * -1;
     }
 
@@ -201,7 +206,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
     }
 
     if(level == 1){
-      write(pipe.pipeOUT, &report, sizeof(coordinate));
+      addUpdate(report);
     }else{
       for(index=0;index<4;index++){
         tmpReport = report;
@@ -210,7 +215,7 @@ void enemy(enemyPipes pipe, borders borders, vettore direzione, coordinate_base 
         tmpReport.prev_coordinate.y += offset.y;
         tmpReport.x += offset.x;
         tmpReport.y += offset.y;
-        if(hitCount[index] < N_HIT_LV2_ENEMY) write(pipe.pipeOUT, &tmpReport, sizeof(coordinate));
+        if(hitCount[index] < N_HIT_LV2_ENEMY) addUpdate(report);
       }
     }
     napms(toWait);

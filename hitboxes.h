@@ -1,7 +1,7 @@
 #ifndef HITBOXES_H
 #define HITBOXES_H
 
-#include "utils_struct.h"
+#include "utils_thread.h"
 #include "enemies.h"
 #include "spacecraft.h"
 

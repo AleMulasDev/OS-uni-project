@@ -4,6 +4,7 @@
 #include "spacecraft.h"
 #include "enemies.h"
 #include "hitboxes.h"
+#include "utils_thread.h"
 
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE MACRO                                            */
@@ -53,6 +54,7 @@ int main(){
   /* Inizializzazioni buffer       */
   position_buffer = (coordinate*)malloc(sizeof(coordinate)*BUFFER_SIZE);
   hit_buffer = (hitUpdate*)malloc(sizeof(hitUpdate)*BUFFER_SIZE);
+  enemiesBuffer = (hitUpdate*)malloc(sizeof(hitUpdate)*MAX_ENEMIES*ENEMY_BUFFER_SIZE);
 
   /* Dichiarazioni variabili       */
   pthread_t TIDSpacecraft;       /* Thread ID del processo Spacecraft */
@@ -126,9 +128,14 @@ int main(){
 
   gameEndingReason = game(border);
   pthread_join(TIDSpacecraft, NULL);
-  pthread_join(TIDenemies, NULL);
+  /*pthread_join(TIDenemies, NULL);*/
   pthread_mutex_destroy(&positionMutex);
   pthread_mutex_destroy(&hitMutex);
+
+  free(position_buffer);
+  free(hit_buffer);
+  free(enemiesBuffer);
+
   return;
 }
 
@@ -298,7 +305,7 @@ int game(borders border){
             if(update.emitter == BULLET){
               if(isHit.emitter == ENEMY)     score += ENEMY_LV1_POINT;
               if(isHit.emitter == ENEMY_LV2) score += ENEMY_LV2_POINT;
-              kill(update.PID, SIGKILL); /* Cancello il proiettile */
+              /*kill(update.PID, SIGKILL); /* Cancello il proiettile */
               attron(COLOR_PAIR(DELETE_COLOR));
               mvprintw(update.y, update.x, "%c", ' ');
             }
@@ -309,7 +316,7 @@ int game(borders border){
             /* Spacecraft colpita da una bomba */
             life--;
             beep();
-            kill(update.PID, SIGKILL);
+            /*kill(update.PID, SIGKILL);*/
             attron(COLOR_PAIR(DELETE_COLOR));
             mvprintw(update.y, update.x, "%c", ' ');
             if(life == 0){

@@ -26,51 +26,40 @@ void *enemies(void *args){
   coordinate_base startingPoint = enArgs.startingPoint;
   int i;
   int pipeToClose;
-  int pid;
 
-  int** enemies_pipes = (int**)malloc(sizeof(int*)*max_enemies);
-  enemyPipes* enemiesPipes = (enemyPipes*)malloc(sizeof(enemyPipes)*max_enemies);
+  enemyThread* enemiesThreads = (enemyThread*)malloc(sizeof(enemyThread)*max_enemies);
   coordinate_base numEnemies = calculateNumEnemies(border, startingPoint);
 
   vettore randDirection = generateRandomDirection();
 
   hitUpdate update;
-  enemyPipes toChild;
   vettore direzione;
 
-  /* -------------- Inizializzo le pipes  -------------- */
+  /* ---------- Inizializzo i semafori/mutex  ---------- */
   for(i=0; i<max_enemies; i++){
-    enemies_pipes[i] = (int*)malloc(sizeof(int)*2);
-    pipe(enemies_pipes[i]);
-    int flags = fcntl(enemies_pipes[i][0], F_GETFL, 0);
-    fcntl(enemies_pipes[i][0], F_SETFL, flags | O_NONBLOCK);  /* Imposto la lettura della pipe non bloccante */
-    enemiesPipes[i].pipeOUT = pipeOUT;
-    enemiesPipes[i].pipeIN = enemies_pipes[i][0];
+    pthread_mutex_init(&(enemiesThreads[i].mutex), NULL);
+    sem_init(&(enemiesThreads[i].semaphore), 0, 0);
+    sem_init(&(enemiesThreads[i].semaphoreFull), 0, ENEMY_BUFFER_SIZE);
   }
 
   /* ----------------- Spawno i nemici ----------------- */
   int enemyCount = 0;
   coordinate_base offset_spawn = {0,0};
+  coordinate_base startingEnemyPoint;
+  enemyArguments enemyArgs;
   while(enemyCount < max_enemies){
-    toChild.pipeIN = enemiesPipes[enemyCount].pipeIN;
-    toChild.pipeOUT = enemiesPipes[enemyCount].pipeOUT;
-    pipeToClose = enemies_pipes[enemyCount][1];
-    direzione = randDirection;
-    pid = fork();
-    if(pid == 0){
-      /* Nemico */
-      close(pipeToClose);
-      for(i=0; i<max_enemies; i++){
-        free(enemies_pipes[i]);
-      }
-      free(enemies_pipes);
-      free(enemiesPipes);
-      coordinate_base startingEnemyPoint = {startingPoint.x + offset_spawn.x, startingPoint.y + offset_spawn.y};
-      enemy(toChild, border, direzione, startingEnemyPoint);
-      return;
+    enemiesThreads[enemyCount].enemyNumber = enemyCount;
+    startingEnemyPoint.x = startingPoint.x + offset_spawn.x;
+    startingEnemyPoint.y = startingPoint.y + offset_spawn.y;
+    enemyArgs.border = border;
+    enemyArgs.startingPoint = startingEnemyPoint;
+    enemyArgs.direzione = randDirection;
+    enemyArgs.self = enemiesThreads[enemyCount];
+
+    if(pthread_create(&(enemiesThreads[enemyCount].threadID_Child), NULL, enemy, (void*)&enemyArgs)){
+      /* Errore nella creazione del thread Nemico */
+      return NULL;
     }else{
-      enemiesPipes[enemyCount].PID_child = pid; /* Salvo il PID del processo figlio */
-      close(enemies_pipes[enemyCount][0]);
       /* sposto il punto di spawn della prossima navicella nemica */
       enemyCount++;
       if(enemyCount%numEnemies.y == 0){
@@ -84,12 +73,12 @@ void *enemies(void *args){
 
   /* ---------------- Comunico i messaggi tra il main e i singoli nemici ---------------- */
   while(enemyCount > 0){
-    read(pipeIN, &update, sizeof(hitUpdate));
+    update = getHit();
     if(update.hitting.x == -1 && update.hitting.emitter == SPACECRAFT){
       /* Chiudo tutti i processi figli */
       enemyCount=0;
       for(i=0; i<max_enemies; i++){
-        if(enemiesPipes[i].PID_child != -1) write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
+        if(enemiesThreads[i].threadID_Child != -1) addEnemyUpdate(update, enemiesThreads[i]);
       }
     }else{
       /* Controllo se è un update di eliminazione nave di primo livello */
@@ -101,8 +90,8 @@ void *enemies(void *args){
         }else{
           /* Cerco il figlio colpito e gli invio l'aggiornamento */
           for(i=0; i<max_enemies; i++){
-            if(update.beingHit.PID == enemiesPipes[i].PID_child){
-              write(enemies_pipes[i][1], &update, sizeof(hitUpdate));
+            if(update.beingHit.threadID == enemiesThreads[i].threadID_Child){
+              addEnemyUpdate(update, enemiesThreads[i]);
               break;
             }
           }
@@ -114,11 +103,7 @@ void *enemies(void *args){
    /* ------------- Chiusura del processo  ------------- */
   while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
 
-  for(i=0; i<max_enemies; i++){
-    free(enemies_pipes[i]);
-  }
-  free(enemies_pipes);
-  free(enemiesPipes);
+  free(enemiesThreads);
 }
 
 

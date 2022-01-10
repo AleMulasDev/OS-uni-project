@@ -16,8 +16,8 @@ void initializeHistory(int numEnemies){
     lastRecorded = (coordinate*)malloc(sizeof(coordinate)*dimHistory);
     int i;
     for(i=0; i<dimHistory;i++){
-        lastRecorded[i].PID = -1;
-        /* Inizializzo a -1 il pid per specificare che non è ancora stato usato */
+        lastRecorded[i].threadID = -1;
+        /* Inizializzo a -1 il threadID per specificare che non è ancora stato usato */
     }
 }
 
@@ -28,22 +28,22 @@ void updatePosition(coordinate newItem){
   /* Non tengo conto dei proiettili */
   if(newItem.emitter==BULLET || newItem.emitter==BOMB) return;
   for(i=0; i<dimHistory; i++){
-    if(lastRecorded[i].PID == newItem.PID){
+    if(lastRecorded[i].threadID == newItem.threadID){
       if (newItem.x == -1 && newItem.emitter == ENEMY && lastRecorded[i].emitter == ENEMY){
         /* Enemy lv 1 da eliminare */
-        lastRecorded[i].PID = -1;
+        lastRecorded[i].threadID = -1;
         return;
       }else{
         if(newItem.x == -1 && newItem.emitter == ENEMY_LV2){
           /* Enemy lv 2 da eliminare */
           if(newItem.prev_coordinate.x == lastRecorded[i].x && newItem.prev_coordinate.y == lastRecorded[i].y){
             /* Le coordinate corrispondono, è l'enemy lv2 giusto da eliminare */
-            lastRecorded[i].PID = -1;
+            lastRecorded[i].threadID = -1;
             return;
           }
         }else{
           /* Update generico di posizione                                                                      */
-          /* Verifico che sia un update dell'oggetto corretto (gli enemy lv2 sono 4x entità con lo stesso pid) */
+          /* Verifico che sia un update dell'oggetto corretto (gli enemy lv2 sono 4x entità con lo stesso threadID) */
           if(newItem.emitter == ENEMY_LV2){
             if(lastRecorded[i].x == newItem.prev_coordinate.x && lastRecorded[i].y == newItem.prev_coordinate.y){
               lastRecorded[i] = newItem;
@@ -59,7 +59,7 @@ void updatePosition(coordinate newItem){
   }
   /* Se arrivo qua allora non è ancora presente nell'array */
   for(i=0; i<dimHistory; i++){
-    if(lastRecorded[i].PID == -1){
+    if(lastRecorded[i].threadID == -1){
       lastRecorded[i] = newItem;
       return;
     }
@@ -76,7 +76,7 @@ coordinate checkHitBox(coordinate newItem){
   updatePosition(newItem);
   if (newItem.x == -1){
     /* Oggetto da eliminare */
-    newItem.PID = -1;
+    newItem.threadID = -1;
     return newItem;
   }
   coordinate_base dim_hitbox;
@@ -85,7 +85,7 @@ coordinate checkHitBox(coordinate newItem){
   for(i=0; i<dimHistory; i++){
     checking = lastRecorded[i];
     dim_hitbox = getHitBox(checking);
-    if(checking.PID == -1 || checking.PID == newItem.PID) continue;
+    if(checking.threadID == -1 || checking.threadID == newItem.threadID) continue;
     if(newItem.x >= checking.x && newItem.x <= checking.x + dim_hitbox.x){
       /* Le x collidono */
       if(newItem.y >= checking.y && newItem.y <= checking.y + dim_hitbox.y){
@@ -102,7 +102,7 @@ coordinate checkHitBox(coordinate newItem){
     }
 
   }
-  checking.PID = -1;
+  checking.threadID = -1;
   return checking;
 }
 
@@ -138,7 +138,7 @@ coordinate_base getHitBox(coordinate item){
 bool areThereEnemies(){
   int i;
   for(i=0; i<dimHistory; i++){
-    if(lastRecorded[i].PID != -1 && (lastRecorded[i].emitter == ENEMY || lastRecorded[i].emitter == ENEMY_LV2)) return true;
+    if(lastRecorded[i].threadID != -1 && (lastRecorded[i].emitter == ENEMY || lastRecorded[i].emitter == ENEMY_LV2)) return true;
   }
   return false;
 }
@@ -147,7 +147,7 @@ int getNumEnemies(int lvl){
   int i;
   int count=0;
   for(i=0; i<dimHistory; i++){
-    if(lastRecorded[i].PID != -1){
+    if(lastRecorded[i].threadID != -1){
       if(lvl == 1 && lastRecorded[i].emitter == ENEMY) count++;
       if(lvl == 2 && lastRecorded[i].emitter == ENEMY_LV2) count++;
     }

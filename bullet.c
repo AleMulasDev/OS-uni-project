@@ -5,10 +5,15 @@
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
 /* ------------------------------------------------------------ */
-void bullet(int pipeOUT, borders borders, vettore direzione, coordinate startingPoint){
+// void bullet(int pipeOUT, border border, vettore direzione, coordinate startingPoint)
+void *bullet(void* args){
+  bulletArguments bulletArgs = *((bulletArguments*)args);
+  coordinate startingPoint = bulletArgs.startingPoint;
+  vettore direzione = bulletArgs.direzione;
+  borders border = bulletArgs.border;
   bool stop = false;
   int i=0;
-  borders.maxx--;
+  border.maxx--;
   /* Inizializzazione coordinate */
   coordinate coords = startingPoint;
   coords.threadID = pthread_self();
@@ -16,7 +21,7 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
   int numMovimenti = abs(direzione.x) + abs(direzione.y); /* Numero di passi da eseguire */
   int changeAfter;
   if(direzione.y == 0){
-    changeAfter = borders.maxx;
+    changeAfter = border.maxx;
   }else{
     if(abs(direzione.x) > abs(direzione.y)){
       changeAfter = abs(direzione.x/direzione.y);
@@ -47,12 +52,12 @@ void bullet(int pipeOUT, borders borders, vettore direzione, coordinate starting
     }
     
     /* Controllo se è fuori dallo schermo */
-    if(coords.x < 1 || coords.x >= borders.maxx || coords.y < 1 || coords.y >= borders.maxy){
+    if(coords.x < 1 || coords.x >= border.maxx || coords.y < 1 || coords.y >= border.maxy){
       coords.x = -2;
       stop = true;
     }
     /* Scrivo coordinate nel pipe */
-    write(pipeOUT, &coords, sizeof(coordinate));
+    addUpdate(coords);
 
     coords.prev_coordinate.x = coords.x;
     coords.prev_coordinate.y = coords.y;

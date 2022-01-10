@@ -2,14 +2,18 @@
 #define UTILS_THREAD_H
 
 #include "utils_struct.h"
+
+
 #define BUFFER_SIZE 32
+#define ENEMY_BUFFER_SIZE 8
 
 coordinate* position_buffer;
-int index_posBuffer = 0;
-int presenti_posBuffer = 0;
+extern int index_posBuffer;
+extern int presenti_posBuffer;
 hitUpdate* hit_buffer;
-int index_hitBuffer = 0;
-int presenti_hitBuffer = 0;
+extern int index_hitBuffer;
+extern int presenti_hitBuffer;
+hitUpdate* enemiesBuffer;
 
 /* Dichiarazione mutex           */
 pthread_mutex_t	positionMutex;
@@ -27,5 +31,8 @@ void addHit(hitUpdate hitAction);
 hitUpdate getHit();
 void addUpdate(coordinate update);
 coordinate getUpdate();
+void addEnemyUpdate(hitUpdate hitAction, enemyThread enemyThread);
+hitUpdate getEnemyUpdate(enemyThread enemyThread);
+hitUpdate getEnemyUpdateNB(enemyThread enemyThread); /* NB = non-blocking */
 
 #endif
