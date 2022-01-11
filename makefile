@@ -4,13 +4,13 @@ game: main.c spacecraft.o enemies.o hitboxes.o utils_struct.o
 hitboxes.o: hitboxes.c hitboxes.h spacecraft.o enemy.o utils_struct.o
 	gcc -c -o hitboxes.o hitboxes.c
 
-spacecraft.o: spacecraft.c spacecraft.h bullet.o utils_struct.o
+spacecraft.o: spacecraft.c spacecraft.h bullet.o
 	gcc -c -o spacecraft.o spacecraft.c
 
-enemies.o: enemies.c enemies.h enemy.o utils_struct.o bullet.o
+enemies.o: enemies.c enemies.h enemy.o
 	gcc -c -o enemies.o enemies.c
 
-enemy.o: enemy.c enemy.h utils_struct.o
+enemy.o: enemy.c enemy.h bullet.o
 	gcc -c -o enemy.o enemy.c
 
 bullet.o: bullet.c bullet.h utils_struct.o
