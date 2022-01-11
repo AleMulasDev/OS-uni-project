@@ -6,15 +6,22 @@ int insert_posBuffer = 0;
 int remove_posBuffer = 0;
 
 void initThreadUtils(){
+  int i;
   /* Inizializzazioni buffer       */
   position_buffer = (coordinate*)malloc(sizeof(coordinate)*BUFFER_SIZE);
   hit_buffer = (hitUpdate*)malloc(sizeof(hitUpdate)*BUFFER_SIZE);
   enemiesBuffer = (hitUpdate*)malloc(sizeof(hitUpdate)*MAX_ENEMIES*ENEMY_BUFFER_SIZE);
+  toDelete = (pthread_t*)malloc(sizeof(pthread_t)*BUFFER_SIZE);
+
+  for(i=0;i<BUFFER_SIZE;i++){
+    toDelete[i] = 0;
+  }
 
   /* Inizializzazioni mutex        */
   pthread_mutex_init(&positionMutex, NULL);
   pthread_mutex_init(&getPositionMutex, NULL);
   pthread_mutex_init(&hitMutex, NULL);
+  pthread_mutex_init(&toDeleteMutex, NULL);
 
   /* Inizializzazioni semafori     */
   sem_init(&semPosBuffer, 0, 0);
@@ -109,4 +116,31 @@ hitUpdate getEnemyUpdateNB(enemyThread enemyThread){
   }
   hitAction.hitting.x = -2;
   return hitAction;
+}
+
+bool checkDeletion(pthread_t threadID){
+  int i;
+  pthread_mutex_lock(&toDeleteMutex); /* toDeleteMutex LOCK */
+  for(i=0; i<BUFFER_SIZE; i++){
+    if(toDelete[i] == threadID){
+      toDelete[i] = 0;
+      pthread_mutex_unlock(&toDeleteMutex); /* toDeleteMutex UNLOCK */
+      return true;
+    }
+  }
+  pthread_mutex_unlock(&toDeleteMutex); /* toDeleteMutex UNLOCK */
+  return false;
+}
+
+void addToDelete(pthread_t threadID){
+  int i;
+  pthread_mutex_lock(&toDeleteMutex); /* toDeleteMutex LOCK */
+  for(i=0; i<BUFFER_SIZE; i++){
+    if(toDelete[i] == 0){
+      toDelete[i] = threadID;
+      pthread_mutex_unlock(&toDeleteMutex); /* toDeleteMutex UNLOCK */
+      return;
+    }
+  }
+  pthread_mutex_unlock(&toDeleteMutex); /* toDeleteMutex UNLOCK */
 }

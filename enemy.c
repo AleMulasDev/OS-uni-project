@@ -12,11 +12,6 @@ char* sprite2Enemy[] = {"<\\\\","<//"};
 
 
 /* ------------------------------------------------------------ */
-/* PROTOTIPI FUNZIONI DI UTILITÀ                                */
-coordinate_base getOffset(int index);
-
-
-/* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
 void *enemy(void* args){
   enemyArguments enemyArgs = *((enemyArguments*) args);
@@ -114,7 +109,7 @@ void *enemy(void* args){
               offset = getOffset(index);
               tmpReport.prev_coordinate.x += offset.x;
               tmpReport.prev_coordinate.y += offset.y;
-              addUpdate(report);
+              addUpdate(tmpReport);
             }
             /* Controllo se sono rimasti nemici in vita */
             stop = true;
@@ -187,6 +182,15 @@ void *enemy(void* args){
       bombSpawnPoint = report;
       bombSpawnPoint.emitter = BOMB;
       bombSpawnPoint.x--;
+      if(level == 2){
+        for(index=0;index<4;index++){
+          if(hitCount[index] < N_HIT_LV2_ENEMY){
+            bombSpawnPoint.x += getOffset(index).x;
+            bombSpawnPoint.y += getOffset(index).y;
+            break;
+          }
+        }
+      }
       bombDirection = RIGHT_UP;
       bombDirection.y = 0;
       bombDirection.x = bombDirection.x * -1;
@@ -210,14 +214,14 @@ void *enemy(void* args){
     if(level == 1){
       addUpdate(report);
     }else{
-      for(index=0;index<4;index++){
+      for(index=0; index<4; index++){
         tmpReport = report;
         offset = getOffset(index);
         tmpReport.prev_coordinate.x += offset.x;
         tmpReport.prev_coordinate.y += offset.y;
         tmpReport.x += offset.x;
         tmpReport.y += offset.y;
-        if(hitCount[index] < N_HIT_LV2_ENEMY) addUpdate(report);
+        if(hitCount[index] < N_HIT_LV2_ENEMY) addUpdate(tmpReport);
       }
     }
     napms(toWait);

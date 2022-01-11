@@ -56,6 +56,12 @@ void *bullet(void* args){
       coords.x = -2;
       stop = true;
     }
+
+    if(checkDeletion(coords.threadID)){
+      coords.x = -2;
+      stop = true;
+    }
+
     /* Scrivo coordinate nel pipe */
     addUpdate(coords);
 

@@ -292,6 +292,7 @@ int game(borders border){
               if(isHit.emitter == ENEMY)     score += ENEMY_LV1_POINT;
               if(isHit.emitter == ENEMY_LV2) score += ENEMY_LV2_POINT;
               /*kill(update.PID, SIGKILL); /* Cancello il proiettile */
+              addToDelete(update.threadID);
               attron(COLOR_PAIR(DELETE_COLOR));
               mvprintw(update.y, update.x, "%c", ' ');
             }
@@ -303,6 +304,7 @@ int game(borders border){
             life--;
             beep();
             /*kill(update.PID, SIGKILL);*/
+            addToDelete(update.threadID);
             attron(COLOR_PAIR(DELETE_COLOR));
             mvprintw(update.y, update.x, "%c", ' ');
             if(life == 0){

@@ -22,5 +22,6 @@ extern char* sprite2Enemy[];
 /* DEFINIZIONE PROTOTIPI                                        */
 
 void *enemy(void* args);
+coordinate_base getOffset(int index);
 
 #endif
