@@ -29,11 +29,11 @@ void *enemies(void *args){
 
   enemyThread* enemiesThreads = (enemyThread*)malloc(sizeof(enemyThread)*max_enemies);
   coordinate_base numEnemies = calculateNumEnemies(border, startingPoint);
+  enemyArguments* enemyArgs = (enemyArguments*)malloc(sizeof(enemyArguments)*max_enemies);
 
   vettore randDirection = generateRandomDirection();
 
   hitUpdate update;
-  vettore direzione;
 
   /* ---------- Inizializzo i semafori/mutex  ---------- */
   for(i=0; i<max_enemies; i++){
@@ -46,17 +46,16 @@ void *enemies(void *args){
   int enemyCount = 0;
   coordinate_base offset_spawn = {0,0};
   coordinate_base startingEnemyPoint;
-  enemyArguments enemyArgs;
   while(enemyCount < max_enemies){
     enemiesThreads[enemyCount].enemyNumber = enemyCount;
     startingEnemyPoint.x = startingPoint.x + offset_spawn.x;
     startingEnemyPoint.y = startingPoint.y + offset_spawn.y;
-    enemyArgs.border = border;
-    enemyArgs.startingPoint = startingEnemyPoint;
-    enemyArgs.direzione = randDirection;
-    enemyArgs.self = enemiesThreads[enemyCount];
+    enemyArgs[enemyCount].border = border;
+    enemyArgs[enemyCount].startingPoint = startingEnemyPoint;
+    enemyArgs[enemyCount].direzione = randDirection;
+    enemyArgs[enemyCount].self = enemiesThreads[enemyCount];
 
-    if(pthread_create(&(enemiesThreads[enemyCount].threadID_Child), NULL, enemy, (void*)&enemyArgs)){
+    if(pthread_create(&(enemiesThreads[enemyCount].threadID_Child), NULL, &enemy, (void*)&(enemyArgs[enemyCount]))){
       /* Errore nella creazione del thread Nemico */
       return NULL;
     }else{

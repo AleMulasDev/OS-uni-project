@@ -13,14 +13,13 @@ float fireRate = 0.15;
 /* ------------------------------------------------------------ */
 /* FUNZIONE PRINCIPALE                                          */
 /* ------------------------------------------------------------ */
-// void *spacecraft(int pipeIN, int pipeOUT, border border){
 void *spacecraft(void *args){
   borders border = *((borders*) args);
   bool quit = false;
-  int pid;
   timeout(0);
   float elapsedTime = 0;
   bulletArguments bulletArgs;
+  bulletArguments bulletArgs2;
   pthread_t bombThreadID;
 
   /* ------------ Inizializzo le coordinate ------------ */
@@ -50,34 +49,23 @@ void *spacecraft(void *args){
       case 32: /* Spazio */
         if(elapsedTime>=DELAY_MS/fireRate){ /* sparo solo se è passato il tempo di attesa tra un colpo e l'altro */
           elapsedTime = 0;
-          pid = fork();
-          if(pid == 0){
-            coords.x = coords.x + SPACECRAFT_SPRITE_WIDTH;
-            coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
-            coords.prev_coordinate.x = coords.x;
-            coords.emitter = BULLET;
-            bulletArgs.border = border;
-            bulletArgs.direzione = RIGHT_UP;
-            bulletArgs.startingPoint = coords;
-            if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
-              return NULL;
-            }
+          bulletArgs.startingPoint = coords;
+          bulletArgs.startingPoint.x = bulletArgs.startingPoint.x + SPACECRAFT_SPRITE_WIDTH;
+          bulletArgs.startingPoint.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
+          bulletArgs.startingPoint.prev_coordinate.x = bulletArgs.startingPoint.x;
+          bulletArgs.startingPoint.emitter = BULLET;
+          bulletArgs.border = border;
+          bulletArgs.direzione = RIGHT_UP;
+          if(pthread_create(&bombThreadID, NULL, &bullet, (void*)&bulletArgs)){
             return NULL;
-          }else{
-            pid = fork();
-            if(pid == 0){
-              coords.x = coords.x + SPACECRAFT_SPRITE_WIDTH;
-              coords.y += SPACECRAFT_SPRITE_HEIGHT/2; /* Faccio partire il colpo dalla punta della navicella */
-              coords.prev_coordinate.x = coords.x;
-              coords.emitter = BULLET;
-              bulletArgs.border = border;
-              bulletArgs.direzione = RIGHT_UP;
-              bulletArgs.startingPoint = coords;
-              if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
-                return NULL;
-              }
-            }
           }
+          
+          bulletArgs2 = bulletArgs;
+          bulletArgs2.direzione = RIGHT_DOWN;
+          if(pthread_create(&bombThreadID, NULL, &bullet, (void*)&bulletArgs2)){
+            return NULL;
+          }
+            
         }
         break;
       case 113: /* q */

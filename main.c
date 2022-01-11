@@ -31,7 +31,7 @@ bool invincible = false;
 /* ------------------------------------------------------------ */
 /* DEFINIZIONE PROTOTIPI                                        */
 
-int game(borders borders);
+int game(borders border);
 /*
   Intero ritornato da game:
   -2: errore nella creazione del thread
@@ -110,7 +110,8 @@ int main(){
   /* ---------------- CREAZIONE THREAD ---------------- */
   
   /* Creazione thread Spacecraft */
-  if(pthread_create(&TIDSpacecraft, NULL, spacecraft, (void*)&border)){
+  borders spacecraftArgs = border;
+  if(pthread_create(&TIDSpacecraft, NULL, &spacecraft, (void*)&spacecraftArgs)){
     endgame(border, -2);
     return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
   }
@@ -121,21 +122,22 @@ int main(){
   enemiesArg.max_enemies = MAX_ENEMIES;
   enemiesArg.startingPoint.y = 1;
   enemiesArg.startingPoint.x = border.maxx - (border.maxx/4);
-  if(pthread_create(&TIDenemies, NULL, enemies, (void*)&enemiesArg)){
+  if(pthread_create(&TIDenemies, NULL, &enemies, (void*)&enemiesArg)){
     endgame(border, -2);
     return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
   }
 
   gameEndingReason = game(border);
   pthread_join(TIDSpacecraft, NULL);
-  /*pthread_join(TIDenemies, NULL);*/
+  pthread_join(TIDenemies, NULL);
   pthread_mutex_destroy(&positionMutex);
   pthread_mutex_destroy(&hitMutex);
 
   free(position_buffer);
   free(hit_buffer);
   free(enemiesBuffer);
-
+  endgame(border, -2);
+  endwin();
   return;
 }
 
@@ -173,11 +175,7 @@ int game(borders border){
   /* ------------ CICLO DI GIOCO PRINCIPALE ------------ */
   /* --------------------------------------------------- */
   while(life > 0){
-    sem_wait(&semPosBuffer);
-    pthread_mutex_lock(&positionMutex);
-    update = position_buffer[index_posBuffer];
-    index_posBuffer--;
-    pthread_mutex_unlock(&positionMutex);
+    update = getUpdate();
 
     /* ---------- STAMPA DEGLI AGGIORNAMENTI  ---------- */
     switch(update.emitter){
@@ -367,8 +365,10 @@ int game(borders border){
       }
     }
     mvprintw(border.maxy+2, 2, "SCORE: %5d", score);
-    mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,MAX_ENEMIES);
-    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,MAX_ENEMIES*4);
+    /*mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,MAX_ENEMIES);
+    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,MAX_ENEMIES*4);*/
+    mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,getNumEnemies(1));
+    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,getNumEnemies(2));
     mvprintw(border.maxy+2, border.maxx/2-8, "LIFE:");
     for(j=0; j<life; j++){
       for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){

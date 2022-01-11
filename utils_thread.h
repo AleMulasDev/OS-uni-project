@@ -9,10 +9,8 @@
 
 coordinate* position_buffer;
 extern int index_posBuffer;
-extern int presenti_posBuffer;
 hitUpdate* hit_buffer;
 extern int index_hitBuffer;
-extern int presenti_hitBuffer;
 hitUpdate* enemiesBuffer;
 
 /* Dichiarazione mutex           */

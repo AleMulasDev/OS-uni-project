@@ -74,6 +74,7 @@ typedef struct {
   sem_t semaphoreFull;
   pthread_t threadID_Child;
   int enemyNumber;
+  int index;
 } enemyThread;
 
 /* ------------------------------------------------------------ */

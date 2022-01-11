@@ -48,7 +48,7 @@ void *enemy(void* args){
   report.x = startingPoint.x;
   report.y = startingPoint.y;
   bool stop = false;
-  srand(getpid());
+  srand(report.threadID);
 
   /* Mando un singolo update, anche se fuori dalla zona visibile, per registrare il nemico nelle hitbox */
   if(report.x > border.maxx) addUpdate(report);
@@ -173,7 +173,7 @@ void *enemy(void* args){
       bulletArgs.border = border;
       bulletArgs.direzione = bombDirection;
       bulletArgs.startingPoint = bombSpawnPoint;
-      if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+      if(pthread_create(&bombThreadID, NULL, &bullet, (void*)&bulletArgs)){
         return NULL;
       }
     }
@@ -191,7 +191,7 @@ void *enemy(void* args){
       bulletArgs.border = border;
       bulletArgs.direzione = bombDirection;
       bulletArgs.startingPoint = bombSpawnPoint;
-      if(pthread_create(&bombThreadID, NULL, bullet, (void*)&bulletArgs)){
+      if(pthread_create(&bombThreadID, NULL, &bullet, (void*)&bulletArgs)){
         return NULL;
       }
     }
