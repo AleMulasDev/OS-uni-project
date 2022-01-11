@@ -18,6 +18,7 @@
 
 #define DELAY_MS 33        /* tempo di attesa in millisecondi                                                */
 #define DEFAULT_SPEED 0.06 /* velocità di default del vettore */
+#define MAX_ENEMIES 20     /* massimo numero di nemici        */
 
 /* ------------------------------------------------------------ */
 /* Enumerazione per riconoscere l'emettitore delle coordinate   */
