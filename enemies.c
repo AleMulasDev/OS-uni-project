@@ -30,6 +30,11 @@ void *enemies(void *args){
   enemyThread* enemiesThreads = (enemyThread*)malloc(sizeof(enemyThread)*max_enemies);
   coordinate_base numEnemies = calculateNumEnemies(border, startingPoint);
   enemyArguments* enemyArgs = (enemyArguments*)malloc(sizeof(enemyArguments)*max_enemies);
+  int* enemyIndexes = (int*)malloc(sizeof(int)*max_enemies);
+  sem_t* semaphores = (sem_t*)malloc(sizeof(sem_t)*max_enemies);
+  sem_t* semaphoresFull = (sem_t*)malloc(sizeof(sem_t)*max_enemies);
+  pthread_mutex_t* mutexes = (pthread_mutex_t*)malloc(sizeof(pthread_mutex_t)*max_enemies);
+
 
   vettore randDirection = generateRandomDirection();
 
@@ -37,9 +42,14 @@ void *enemies(void *args){
 
   /* ---------- Inizializzo i semafori/mutex  ---------- */
   for(i=0; i<max_enemies; i++){
-    pthread_mutex_init(&(enemiesThreads[i].mutex), NULL);
-    sem_init(&(enemiesThreads[i].semaphore), 0, 0);
-    sem_init(&(enemiesThreads[i].semaphoreFull), 0, ENEMY_BUFFER_SIZE);
+    enemiesThreads[i].mutex = &mutexes[i];
+    enemiesThreads[i].semaphore = &semaphores[i];
+    enemiesThreads[i].semaphoreFull = &semaphoresFull[i];
+    pthread_mutex_init((enemiesThreads[i].mutex), NULL);
+    sem_init((enemiesThreads[i].semaphore), 0, 0);
+    sem_init((enemiesThreads[i].semaphoreFull), 0, ENEMY_BUFFER_SIZE);
+    enemyIndexes[i] = 0;
+    enemiesThreads[i].index = &(enemyIndexes[i]);
   }
 
   /* ----------------- Spawno i nemici ----------------- */
@@ -99,10 +109,10 @@ void *enemies(void *args){
     }
   }
 
-   /* ------------- Chiusura del processo  ------------- */
-  while(wait(NULL) > 0); /* Attendo la terminazione dei processi figli */
+   /* ------------- Chiusura del thread  ------------- */
 
   free(enemiesThreads);
+  free(enemyArgs);
 }
 
 

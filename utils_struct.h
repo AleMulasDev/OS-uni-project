@@ -69,12 +69,12 @@ extern vettore RIGHT_UP;
 extern vettore RIGHT_DOWN;
 
 typedef struct {
-  pthread_mutex_t mutex;
-  sem_t semaphore;
-  sem_t semaphoreFull;
+  pthread_mutex_t* mutex;
+  sem_t* semaphore;
+  sem_t* semaphoreFull;
   pthread_t threadID_Child;
   int enemyNumber;
-  int index;
+  int* index;
 } enemyThread;
 
 /* ------------------------------------------------------------ */

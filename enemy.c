@@ -24,6 +24,8 @@ void *enemy(void* args){
   coordinate_base startingPoint = enemyArgs.startingPoint;
   vettore direzione = enemyArgs.direzione;
   enemyThread self = enemyArgs.self;
+  int indexThread = 0;
+  self.index = &indexThread;
   self.threadID_Child = pthread_self();
   coordinate report;
   coordinate tmpReport;

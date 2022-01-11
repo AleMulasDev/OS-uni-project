@@ -15,6 +15,7 @@ hitUpdate* enemiesBuffer;
 
 /* Dichiarazione mutex           */
 pthread_mutex_t	positionMutex;
+pthread_mutex_t	getPositionMutex;
 pthread_mutex_t	hitMutex;
 /* Dichiarazione semafori        */
 sem_t semPosBuffer;

@@ -51,25 +51,12 @@ int main(){
   srand(time(NULL));
   initializeHistory(MAX_ENEMIES);
 
-  /* Inizializzazioni buffer       */
-  position_buffer = (coordinate*)malloc(sizeof(coordinate)*BUFFER_SIZE);
-  hit_buffer = (hitUpdate*)malloc(sizeof(hitUpdate)*BUFFER_SIZE);
-  enemiesBuffer = (hitUpdate*)malloc(sizeof(hitUpdate)*MAX_ENEMIES*ENEMY_BUFFER_SIZE);
+  initThreadUtils();
 
   /* Dichiarazioni variabili       */
   pthread_t TIDSpacecraft;       /* Thread ID del processo Spacecraft */
   pthread_t TIDenemies;          /* Thread ID del processo enemies    */
   int gameEndingReason;          /* Risultato della partita           */
-
-  /* Inizializzazioni mutex        */
-  pthread_mutex_init(&positionMutex, NULL);
-  pthread_mutex_init(&hitMutex, NULL);
-
-  /* Inizializzazioni semafori     */
-  sem_init(&semPosBuffer, 0, 0);
-  sem_init(&semHitBufferFull, 0, BUFFER_SIZE);
-  sem_init(&semPosBufferFull, 0, BUFFER_SIZE);
-  sem_init(&semHitBuffer, 0, 0);
 
   /* Inizializzazione ncurses      */
   initscr();
@@ -207,6 +194,7 @@ int game(borders border){
         /* Cancello la precedente posizione del proiettile */
         mvprintw(update.prev_coordinate.y, update.prev_coordinate.x, "%c", ' ');  
         attron(COLOR_PAIR(BULLET_COLOR));
+        if(update.x == -2) break;
         /* Stampo nella nuova posizione del proiettile     */
         mvprintw(update.y, update.x, "%c", projectile);                           
         break;
