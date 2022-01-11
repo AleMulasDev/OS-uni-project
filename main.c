@@ -100,7 +100,7 @@ int main(){
   borders spacecraftArgs = border;
   if(pthread_create(&TIDSpacecraft, NULL, &spacecraft, (void*)&spacecraftArgs)){
     endgame(border, -2);
-    return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
+    return;
   }
   
   /* Creazione thread enemies */
@@ -110,11 +110,13 @@ int main(){
   enemiesArg.startingPoint.y = 1;
   enemiesArg.startingPoint.x = border.maxx - (border.maxx/4);
   if(pthread_create(&TIDenemies, NULL, &enemies, (void*)&enemiesArg)){
+    addToDelete(TIDSpacecraft);
     endgame(border, -2);
-    return; /* TODO AGGIUNGERE CONTROLLO CHE ENTRAMBI SIANO CHIUSI (enemies e spacecraft) */
+    return;
   }
 
   gameEndingReason = game(border);
+  addToDelete(TIDSpacecraft);
   pthread_join(TIDSpacecraft, NULL);
   pthread_join(TIDenemies, NULL);
   pthread_mutex_destroy(&positionMutex);
@@ -123,7 +125,7 @@ int main(){
   free(position_buffer);
   free(hit_buffer);
   free(enemiesBuffer);
-  endgame(border, -2);
+  endgame(border, gameEndingReason);
   endwin();
   return;
 }

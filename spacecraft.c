@@ -33,7 +33,7 @@ void *spacecraft(void *args){
 
   fflush(stdin);
   /* ---------------- Ciclo principale  ---------------- */
-  while(!quit){
+  while(!quit && !checkDeletion(coords.threadID)){
     int c = getch();
     switch(c){
       case KEY_UP:
