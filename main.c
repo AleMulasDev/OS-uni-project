@@ -357,10 +357,8 @@ int game(borders border){
       }
     }
     mvprintw(border.maxy+2, 2, "SCORE: %5d", score);
-    /*mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,MAX_ENEMIES);
-    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,MAX_ENEMIES*4);*/
-    mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,getNumEnemies(1));
-    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,getNumEnemies(2));
+    mvprintw(border.maxy+1, 20, "NEMICI LV 1: %2d/%2d", lv1Killed,MAX_ENEMIES);
+    mvprintw(border.maxy+3, 20, "NEMICI LV 2: %2d/%2d", lv2Killed,MAX_ENEMIES*4);
     mvprintw(border.maxy+2, border.maxx/2-8, "LIFE:");
     for(j=0; j<life; j++){
       for(i=0; i<SPACECRAFT_SPRITE_HEIGHT; i++){
