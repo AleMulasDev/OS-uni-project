@@ -24,4 +24,3 @@ utils_struct.o: utils_struct.c utils_struct.h
 
 clean:
 	rm *.o
-	rm game
